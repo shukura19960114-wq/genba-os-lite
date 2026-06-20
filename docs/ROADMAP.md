@@ -5,7 +5,7 @@
 > **再開時のお願い（AIへ）**: まず「★現在地」を確認し、未完了の直近ステップから1つずつ案内すること。
 > ユーザーは開発初心者。**一度に1手順だけ**提示する。
 
-最終更新: 2026-06-20
+最終更新: 2026-06-21
 
 ---
 
@@ -103,9 +103,10 @@ lib/
 
 ## 5. ★現在地（YOU ARE HERE）
 
-- **Phase 1.0 の「手作業検証」フェーズ**を実施中。
-- 完了済み: #1〜#10 ✅（dev/prod作成→鍵→.env→doctor→pub get→build_runner→analyze(dart)→test）。コード検証すべて緑。Androidは💤後回し。
-- **次にやること**: 【日本語パス対策】`建設AI`フォルダを英語名にリネーム → VSCodeで開き直し → `flutter analyze`で復活確認 → iOS設定（#13〜）→ iOS起動（#17）。
+- **Phase 1.0 の「iOS設定」フェーズ**に入る直前。
+- 完了済み: #1〜#10 ✅／日本語パス対策(リネーム→`kensetsu-ai`)✅／#18 Git push ✅（2026-06-21）。
+  - 当環境に flutter 3.44.2 等が導入済み。`flutter analyze`=No issues / `flutter test`=6件緑 を**再検証済み**（日本語パス問題も解消確認）。
+- **次にやること**: iOS設定 #13（`cd ios && pod install`）→ #14〜#16（Xcodeでdev/prod構成・scheme）→ #17（`flutter run --flavor dev`で「接続OK」）。詳細は [docs/SETUP.md](SETUP.md)。
 - **チャットが切れた時の再開方法**: 新しいClaudeチャットで「`docs/ROADMAP.md` を読んで、続きから1ステップずつ案内して」と言う。
 
 ### Phase 1.0 手作業チェックリスト（これを全部 ✅ にすれば 1.0 完了）
@@ -129,7 +130,7 @@ lib/
 | 15 | iOS: 各configに xcconfig 紐付け＋pbxprojのbundle id直書きを `$(PRODUCT_BUNDLE_IDENTIFIER)` に | ⬜ |
 | 16 | iOS: scheme `dev`/`prod` 作成（Shared）＋アクション割当 | ⬜ |
 | 17 | iOS: `flutter run --flavor dev -t lib/main_dev.dart` →「接続OK」 | ⬜ |
-| 18 | Phase 1.0 を Git コミット（例: `Phase 1.0: 基盤構築`） | ⬜ |
+| 18 | Phase 1.0 を Git コミット＆ push（`55f9a8a Phase 1.0: 基盤構築`） | ✅ 2026-06-21 push済み。CIはGitHub Actionsで実行中 |
 
 > 詳しい手順は [docs/SETUP.md](SETUP.md) を参照。iOS（13〜17）が最難関。
 
@@ -155,7 +156,7 @@ lib/
 
 ## 7. 現状サマリ（コード側）
 
-- ✅ Phase 1.0 のコードは実装＆マルチエージェント・レビュー済み（ブロッカー修正済み）。
-- ⏳ ただし当環境に flutter が無く**実行検証は未**。手作業チェックリストで検証する。
+- ✅ Phase 1.0 のコードは実装＆レビュー済み。flutter導入済みで `analyze`/`test` 緑を実機再検証済み。
+- ✅ 2026-06-21 に GitHub へ push 済み（`55f9a8a`）。残りは iOS設定(#13〜#17)のみで Phase 1.0 完了。
 - ⬜ Phase 1.1 以降は未着手。
-- リポジトリ: `/Users/shukura/建設AI/genba_os_lite`（gitはこのディレクトリがルート）。
+- リポジトリ: `/Users/shukura/kensetsu-ai/genba_os_lite`（gitはこのディレクトリがルート）。リモート: github.com/shukura19960114-wq/genba-os-lite
