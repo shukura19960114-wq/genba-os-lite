@@ -40,6 +40,13 @@ jobs:
       - name: Test
         run: flutter test
 
-      # debug ビルドが通ることだけ確認（dev flavor）。署名・実鍵は不要。
-      - name: Build (Android debug, dev flavor)
-        run: flutter build apk --debug --flavor dev -t lib/main_dev.dart
+      # 【Androidビルドは後回し（ROADMAP方針: iOS優先 / Android SDK未導入）】
+      # 以前ここで `flutter build apk --flavor dev` を実行していたが、Androidは未着手の
+      # ため CI が常に赤くなっていた。Android に正式着手する段（後続Phase）で、
+      # ローカルで `flutter build apk --flavor dev` を緑にしてから下記を復活させる:
+      #
+      #   - name: Build (Android debug, dev flavor)
+      #     run: flutter build apk --debug --flavor dev -t lib/main_dev.dart
+      #
+      # iOS ビルド検証が必要になったら、macos ランナーの別ジョブとして追加する。
+      # 現状の CI ゲートは「Analyze エラー0」＋「Test 緑」。

@@ -130,7 +130,7 @@ lib/
 | 15 | iOS: 各configに xcconfig 紐付け＋pbxprojのbundle id直書きを `$(PRODUCT_BUNDLE_IDENTIFIER)` に | ⬜ |
 | 16 | iOS: scheme `dev`/`prod` 作成（Shared）＋アクション割当 | ⬜ |
 | 17 | iOS: `flutter run --flavor dev -t lib/main_dev.dart` →「接続OK」 | ⬜ |
-| 18 | Phase 1.0 を Git コミット＆ push（`55f9a8a Phase 1.0: 基盤構築`） | ✅ 2026-06-21 push済み。CIはGitHub Actionsで実行中 |
+| 18 | Phase 1.0 を Git コミット＆ push（`55f9a8a Phase 1.0: 基盤構築`） | ✅ 2026-06-21 push済み。**CIゲートはAnalyze+Testのみ**（Androidビルドは後回し方針に合わせCIから除外。Android着手時に`ci.yml`のコメントから復活させる） |
 
 > 詳しい手順は [docs/SETUP.md](SETUP.md) を参照。iOS（13〜17）が最難関。
 
