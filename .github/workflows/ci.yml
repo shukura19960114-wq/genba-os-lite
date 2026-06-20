@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# 秘密情報（実 Supabase 鍵）には一切依存しない。接続テストは CI に含めない。
+jobs:
+  analyze-test-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable # 再現性のため、安定後は flutter-version での固定を推奨
+          cache: true
+
+      # .env.dev / .env.prod は .gitignore でGit管理外のため CI には存在しない。
+      # アセット解決のためダミー（example）からコピーする。実鍵は使わない。
+      - name: Prepare dummy .env files (no real secrets)
+        run: |
+          cp .env.example .env.dev
+          cp .env.example .env.prod
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # freezed などの生成ファイル（*.freezed.dart）はGit管理外なので先に生成する。
+      - name: Code generation (build_runner)
+        run: dart run build_runner build
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      # debug ビルドが通ることだけ確認（dev flavor）。署名・実鍵は不要。
+      - name: Build (Android debug, dev flavor)
+        run: flutter build apk --debug --flavor dev -t lib/main_dev.dart

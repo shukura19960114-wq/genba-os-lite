@@ -1,0 +1,6 @@
+#include "Generated.xcconfig"
+#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug-dev.xcconfig"
+
+APP_DISPLAY_NAME=現場OS Lite Dev
+PRODUCT_BUNDLE_IDENTIFIER=com.example.genbaOsLite.dev
+FLUTTER_TARGET=lib/main_dev.dart

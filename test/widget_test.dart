@@ -1,30 +1,58 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// Phase 1.0（基盤）のテスト。
+// 既定の counter テストは廃止。Supabase 初期化やプラグインに依存しない
+// 純粋なユニット/ウィジェットのみを対象にし、CI（接続なし）で常に緑になるようにする。
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:genba_os_lite/main.dart';
+import 'package:genba_os_lite/core/config/app_env.dart';
+import 'package:genba_os_lite/core/supabase/supabase_health_check.dart';
+import 'package:genba_os_lite/features/foundation/presentation/widgets/connection_status_card.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('AppEnv', () {
+    test('envFileName が環境ごとに正しい', () {
+      expect(AppEnv.dev.envFileName, '.env.dev');
+      expect(AppEnv.prod.envFileName, '.env.prod');
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    test('label / isDev / isProd', () {
+      expect(AppEnv.dev.label, 'dev');
+      expect(AppEnv.prod.label, 'prod');
+      expect(AppEnv.dev.isDev, isTrue);
+      expect(AppEnv.dev.isProd, isFalse);
+      expect(AppEnv.prod.isProd, isTrue);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('enum name は Flavor 名（dev/prod）と一致する', () {
+      expect(AppEnv.dev.name, 'dev');
+      expect(AppEnv.prod.name, 'prod');
+    });
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  group('ConnectionStatusCard', () {
+    Widget wrap(AsyncValue<ConnectionStatus> status) => MaterialApp(
+          home: Scaffold(body: ConnectionStatusCard(statusAsync: status)),
+        );
+
+    testWidgets('OK のとき「Supabase接続：OK」を表示', (tester) async {
+      await tester.pumpWidget(wrap(const AsyncData(ConnectionStatus.ok())));
+      expect(find.text('Supabase接続：OK'), findsOneWidget);
+    });
+
+    testWidgets('NG のとき「Supabase接続：NG」とエラー内容を表示', (tester) async {
+      await tester.pumpWidget(
+        wrap(const AsyncData(ConnectionStatus.ng('テスト用エラー'))),
+      );
+      expect(find.text('Supabase接続：NG'), findsOneWidget);
+      expect(find.text('テスト用エラー'), findsOneWidget);
+    });
+
+    testWidgets('loading のとき「確認中…」を表示', (tester) async {
+      await tester.pumpWidget(
+        wrap(const AsyncLoading<ConnectionStatus>()),
+      );
+      expect(find.textContaining('確認中'), findsOneWidget);
+    });
   });
 }

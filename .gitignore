@@ -1,3 +1,16 @@
+# === 秘密情報（絶対にコミットしない）===
+# 実際の Supabase URL / anon key を入れる .env はGit管理外。.env.example だけ残す。
+.env
+.env.*
+!.env.example
+# --dart-define-from-file 用のJSON（秘密値）も除外
+dev.json
+prod.json
+
+# === コード生成物（build_runner: freezed / json_serializable）===
+*.freezed.dart
+*.g.dart
+
 # Miscellaneous
 *.class
 *.log

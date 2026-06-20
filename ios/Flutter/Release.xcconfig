@@ -1,1 +1,4 @@
 #include "Generated.xcconfig"
+
+// Flavor未指定（既定Runner scheme）でも表示名が空にならないようフォールバック。
+APP_DISPLAY_NAME=現場OS Lite
