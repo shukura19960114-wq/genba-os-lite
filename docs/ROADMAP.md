@@ -81,7 +81,7 @@ lib/
 | サブ | 内容 | 完了条件 | 状態 |
 |---|---|---|---|
 | **1.0 基盤構築** | Supabase接続・dev/prod Flavor・主要ライブラリ・CI・接続OK画面 | 下の「Phase1.0 完了判定」全YES | ✅ **完了**（iOSで dev/prod とも起動・接続OK確認済み 2026-06-21） |
-| **1.1 認証/ログイン** | companies/profiles + RLS + ログイン画面 + go_router認証ガード | ログイン→現場一覧へ遷移、未ログインは/loginへ | ⬜ |
+| **1.1 認証/ログイン** | companies/profiles + RLS + ログイン画面 + go_router認証ガード | ログイン→Homeへ遷移、未ログインは/loginへ | ✅ **完了**（dev実機でログイン/ログアウト/セッション維持を確認 2026-06-21。prodは本番化前に同手順を適用） |
 | **1.2 現場一覧** | sitesテーブル+RLS、Siteモデル、一覧画面（日本語日付・空/エラー表示） | 自社の現場のみ一覧表示・タップで詳細 | ⬜ |
 | **1.3 写真管理** | photosテーブル+プライベートバケット+Storage RLS、撮影→保存→送信→再送 | 現場に写真を撮って保存・オンラインで自動アップロード | ⬜ |
 
@@ -103,11 +103,12 @@ lib/
 
 ## 5. ★現在地（YOU ARE HERE）
 
-- **Phase 1.0（基盤構築）は完了 ✅**（2026-06-21）。次は **Phase 1.1（認証/ログイン）** に着手する。
-- 完了済み: #1〜#18 すべて ✅。iOSシミュレータ(iPhone 17 Pro)で **dev / prod とも起動し「環境：dev/prod」「Supabase接続：OK」を目視確認**。
-  - flavor 正式対応済み: Build Configuration 9種・共有Scheme `dev`/`prod`・Bundle ID は dev=`...genbaOsLite.dev` / prod=`...genbaOsLite`（同居インストール可）。
-  - iOSプラグインは **Swift Package Manager** 解決（Podfile不要）。`flutter analyze`=No issues / `flutter test`=6件緑。
-- **次にやること**: Phase 1.1。companies/profiles テーブル + RLS、ログイン画面、go_router 認証ガード（未ログインは `/login`、ログイン後は現場一覧へ）。
+- **Phase 1.0・1.1 ともに完了 ✅**。次は **Phase 1.2（現場一覧）** に着手する。
+- Phase 1.1（認証/ログイン）: dev の Supabase に認証スキーマ適用済み・テストユーザー作成済み。**dev実機（iPhone 17 Pro）で ログイン成功 / セッション維持 / ログアウト を目視確認**（2026-06-21）。`flutter analyze`=No issues / `flutter test`=17件緑。
+- **本番化前の残タスク（運用）**: prod の Supabase にも [docs/SUPABASE_AUTH_SETUP.md](SUPABASE_AUTH_SETUP.md) の手順1〜3を適用（テーブル+RLS+ユーザー）。コード変更は不要。
+- **実装メモ**: AuthRepository は抽象＋Supabase実装（将来Googleログイン拡張可）。go_routerはrefreshListenableで認証状態変化を監視。セッション復元はsupabase_flutterが永続化で自動対応。current_company_id()（security definer）でRLSの自社判定。
+- **次にやること**: Phase 1.2。sites テーブル+RLS、Site モデル、現場一覧画面（自社の現場のみ・日本語日付・空/エラー表示）、Homeから一覧への導線。
+- **その後**: prod にも同手順を適用 → Phase 1.2（現場一覧）へ。
 - **チャットが切れた時の再開方法**: 新しいClaudeチャットで「`docs/ROADMAP.md` を読んで、続きから1ステップずつ案内して」と言う。
 
 ### Phase 1.0 手作業チェックリスト（これを全部 ✅ にすれば 1.0 完了）
