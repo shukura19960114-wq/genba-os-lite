@@ -1,11 +1,12 @@
 # 現場OS Lite（genba_os_lite）
 
 中小建設企業の現場業務をスマホで支援するアプリ。Flutter + Supabase 製。
-本リポジトリは **Phase 1.1（認証/ログイン）** まで実装しています（基盤構築 + Email/Password ログイン）。
+本リポジトリは **Phase 1.2（現場一覧）** まで実装しています（基盤構築 + ログイン + 現場の一覧/作成/詳細）。
 
 - 対象: iOS / Android（モバイル中心。Web は当面対象外）
-- バックエンド: Supabase（**dev / prod の2環境**）。認証は Email + Password
-- 詳細な進捗・設計: [docs/ROADMAP.md](docs/ROADMAP.md) ／ 基盤セットアップ: [docs/SETUP.md](docs/SETUP.md) ／ 認証セットアップ: [docs/SUPABASE_AUTH_SETUP.md](docs/SUPABASE_AUTH_SETUP.md)
+- バックエンド: Supabase（**dev / prod の2環境**）。認証は Email + Password、全テーブルに `company_id` + RLS
+- 詳細な進捗・設計: [docs/ROADMAP.md](docs/ROADMAP.md) ／ 基盤: [docs/SETUP.md](docs/SETUP.md) ／ 認証: [docs/SUPABASE_AUTH_SETUP.md](docs/SUPABASE_AUTH_SETUP.md)
+- DBスキーマ: [supabase/migrations/](supabase/migrations/)（dev/prod の SQL Editor で順に適用）
 
 ## 認証（ログイン）
 

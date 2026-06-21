@@ -82,7 +82,7 @@ lib/
 |---|---|---|---|
 | **1.0 基盤構築** | Supabase接続・dev/prod Flavor・主要ライブラリ・CI・接続OK画面 | 下の「Phase1.0 完了判定」全YES | ✅ **完了**（iOSで dev/prod とも起動・接続OK確認済み 2026-06-21） |
 | **1.1 認証/ログイン** | companies/profiles + RLS + ログイン画面 + go_router認証ガード | ログイン→Homeへ遷移、未ログインは/loginへ | ✅ **完了**（dev実機でログイン/ログアウト/セッション維持を確認 2026-06-21。prodは本番化前に同手順を適用） |
-| **1.2 現場一覧** | sitesテーブル+RLS、Siteモデル、一覧画面（日本語日付・空/エラー表示） | 自社の現場のみ一覧表示・タップで詳細 | ⬜ |
+| **1.2 現場一覧** | sitesテーブル+RLS、Siteモデル、一覧/作成/詳細画面 | 自社の現場のみ一覧表示・タップで詳細 | ✅ **完了**（dev実機で 現場作成/一覧/詳細/RLS を確認 2026-06-21） |
 | **1.3 写真管理** | photosテーブル+プライベートバケット+Storage RLS、撮影→保存→送信→再送 | 現場に写真を撮って保存・オンラインで自動アップロード | ⬜ |
 
 ### ■ Phase 2〜10：ローンチまで（想定。PDF未定義のため、各Phase着手時に詳細化）
@@ -103,12 +103,11 @@ lib/
 
 ## 5. ★現在地（YOU ARE HERE）
 
-- **Phase 1.0・1.1 ともに完了 ✅**。次は **Phase 1.2（現場一覧）** に着手する。
-- Phase 1.1（認証/ログイン）: dev の Supabase に認証スキーマ適用済み・テストユーザー作成済み。**dev実機（iPhone 17 Pro）で ログイン成功 / セッション維持 / ログアウト を目視確認**（2026-06-21）。`flutter analyze`=No issues / `flutter test`=17件緑。
-- **本番化前の残タスク（運用）**: prod の Supabase にも [docs/SUPABASE_AUTH_SETUP.md](SUPABASE_AUTH_SETUP.md) の手順1〜3を適用（テーブル+RLS+ユーザー）。コード変更は不要。
-- **実装メモ**: AuthRepository は抽象＋Supabase実装（将来Googleログイン拡張可）。go_routerはrefreshListenableで認証状態変化を監視。セッション復元はsupabase_flutterが永続化で自動対応。current_company_id()（security definer）でRLSの自社判定。
-- **次にやること**: Phase 1.2。sites テーブル+RLS、Site モデル、現場一覧画面（自社の現場のみ・日本語日付・空/エラー表示）、Homeから一覧への導線。
-- **その後**: prod にも同手順を適用 → Phase 1.2（現場一覧）へ。
+- **Phase 1.0・1.1・1.2 すべて完了 ✅**。次は **Phase 1.3（写真管理）** に着手する。
+- Phase 1.2（現場一覧）: dev に sites テーブル+RLS 適用済み。**dev実機（iPhone 17 Pro）で 現場作成→一覧表示→詳細表示 を目視確認**（2026-06-21）。company_id は DB既定値 current_company_id() で自動付与され、RLSで自社のみ取得。`flutter analyze`=No issues / `flutter test`=24件緑。
+- **本番化前の残タスク（運用・コード変更不要）**: prod の Supabase に認証スキーマ([docs/SUPABASE_AUTH_SETUP.md](SUPABASE_AUTH_SETUP.md)) と sites([supabase/migrations/0002_sites.sql](../supabase/migrations/0002_sites.sql)) を適用。
+- **実装メモ**: feature-first。Repositoryは抽象interface＋Supabase実装でテスト差し替え可。一覧/詳細はFutureProvider、作成はAsyncNotifier（成功時に一覧をinvalidate）。go_routerに /sites・/sites/new・/sites/:id を追加。
+- **次にやること**: Phase 1.3（写真管理）。photosテーブル+プライベートStorageバケット+Storage RLS、撮影→端末保存→オンライン時アップロード（最小・楽観的。永続キュー等は後送り）。
 - **チャットが切れた時の再開方法**: 新しいClaudeチャットで「`docs/ROADMAP.md` を読んで、続きから1ステップずつ案内して」と言う。
 
 ### Phase 1.0 手作業チェックリスト（これを全部 ✅ にすれば 1.0 完了）
