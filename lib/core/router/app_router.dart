@@ -8,6 +8,10 @@ import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/foundation/presentation/connection_check_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/reports/presentation/report_detail_screen.dart';
+import '../../features/reports/presentation/report_edit_screen.dart';
+import '../../features/reports/presentation/report_form_screen.dart';
+import '../../features/reports/presentation/report_list_screen.dart';
 import '../../features/sites/presentation/site_create_screen.dart';
 import '../../features/sites/presentation/site_detail_screen.dart';
 import '../../features/sites/presentation/site_list_screen.dart';
@@ -73,6 +77,33 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: RouteNames.siteDetail,
         builder: (context, state) =>
             SiteDetailScreen(siteId: state.pathParameters['id']!),
+      ),
+      // 日報（現場配下）。'/reports/new' を '/reports/:reportId' より先に登録する。
+      GoRoute(
+        path: RoutePaths.siteReports,
+        name: RouteNames.siteReports,
+        builder: (context, state) =>
+            ReportListScreen(siteId: state.pathParameters['siteId']!),
+      ),
+      GoRoute(
+        path: RoutePaths.siteReportNew,
+        name: RouteNames.siteReportNew,
+        builder: (context, state) =>
+            ReportFormScreen(siteId: state.pathParameters['siteId']!),
+      ),
+      GoRoute(
+        path: RoutePaths.siteReportDetail,
+        name: RouteNames.siteReportDetail,
+        builder: (context, state) => ReportDetailScreen(
+          siteId: state.pathParameters['siteId']!,
+          reportId: state.pathParameters['reportId']!,
+        ),
+      ),
+      GoRoute(
+        path: RoutePaths.siteReportEdit,
+        name: RouteNames.siteReportEdit,
+        builder: (context, state) =>
+            ReportEditScreen(reportId: state.pathParameters['reportId']!),
       ),
     ],
   );

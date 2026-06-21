@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../shared/widgets/async_value_widget.dart';
 import '../../photos/application/photo_upload_controller.dart';
@@ -49,7 +50,17 @@ class SiteDetailScreen extends ConsumerWidget {
                 label: '登録日',
                 value: _formatDate(site.createdAt),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 8),
+              // Phase 2: 日報への導線
+              ListTile(
+                key: const Key('site_reports_tile'),
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.description_outlined),
+                title: const Text('日報'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/sites/${site.id}/reports'),
+              ),
+              const SizedBox(height: 16),
               _PhotosSection(siteId: siteId, companyId: site.companyId),
             ],
           );

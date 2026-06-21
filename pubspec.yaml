@@ -45,6 +45,9 @@ dependencies:
   image_picker: ^1.2.2           # カメラ / フォトライブラリから撮影・選択
   uuid: ^4.5.3                   # Storage パス（{company}/{site}/{uuid}.jpg）用
 
+  # --- Phase 2 日報機能 ---
+  intl: ^0.20.2                  # 日付フォーマット（DateFormat）
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
