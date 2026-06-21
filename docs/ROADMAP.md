@@ -83,7 +83,7 @@ lib/
 | **1.0 基盤構築** | Supabase接続・dev/prod Flavor・主要ライブラリ・CI・接続OK画面 | 下の「Phase1.0 完了判定」全YES | ✅ **完了**（iOSで dev/prod とも起動・接続OK確認済み 2026-06-21） |
 | **1.1 認証/ログイン** | companies/profiles + RLS + ログイン画面 + go_router認証ガード | ログイン→Homeへ遷移、未ログインは/loginへ | ✅ **完了**（dev実機でログイン/ログアウト/セッション維持を確認 2026-06-21。prodは本番化前に同手順を適用） |
 | **1.2 現場一覧** | sitesテーブル+RLS、Siteモデル、一覧/作成/詳細画面 | 自社の現場のみ一覧表示・タップで詳細 | ✅ **完了**（dev実機で 現場作成/一覧/詳細/RLS を確認 2026-06-21） |
-| **1.3 写真管理** | photosテーブル+プライベートバケット+Storage RLS、撮影→保存→送信→再送 | 現場に写真を撮って保存・オンラインで自動アップロード | ⬜ |
+| **1.3 写真管理** | photosテーブル+プライベートバケット+Storage RLS、撮影/選択→アップロード→一覧表示 | 現場に写真を保存・表示（自社のみ） | ✅ **完了**（dev実機で 写真アップロード/表示/RLS を確認 2026-06-21。MVP=楽観的アップロード。永続キュー等はPhase 4） |
 
 ### ■ Phase 2〜10：ローンチまで（想定。PDF未定義のため、各Phase着手時に詳細化）
 
@@ -103,11 +103,11 @@ lib/
 
 ## 5. ★現在地（YOU ARE HERE）
 
-- **Phase 1.0・1.1・1.2 すべて完了 ✅**。次は **Phase 1.3（写真管理）** に着手する。
-- Phase 1.2（現場一覧）: dev に sites テーブル+RLS 適用済み。**dev実機（iPhone 17 Pro）で 現場作成→一覧表示→詳細表示 を目視確認**（2026-06-21）。company_id は DB既定値 current_company_id() で自動付与され、RLSで自社のみ取得。`flutter analyze`=No issues / `flutter test`=24件緑。
-- **本番化前の残タスク（運用・コード変更不要）**: prod の Supabase に認証スキーマ([docs/SUPABASE_AUTH_SETUP.md](SUPABASE_AUTH_SETUP.md)) と sites([supabase/migrations/0002_sites.sql](../supabase/migrations/0002_sites.sql)) を適用。
-- **実装メモ**: feature-first。Repositoryは抽象interface＋Supabase実装でテスト差し替え可。一覧/詳細はFutureProvider、作成はAsyncNotifier（成功時に一覧をinvalidate）。go_routerに /sites・/sites/new・/sites/:id を追加。
-- **次にやること**: Phase 1.3（写真管理）。photosテーブル+プライベートStorageバケット+Storage RLS、撮影→端末保存→オンライン時アップロード（最小・楽観的。永続キュー等は後送り）。
+- **🎉 Phase 1（基盤＋初期機能）完了 ✅** — 1.0 基盤 / 1.1 認証 / 1.2 現場一覧 / 1.3 写真管理 すべて dev実機で検証済み（2026-06-21）。次は **Phase 2（日報機能）**。
+- Phase 1.3（写真管理）: dev に photos テーブル+RLS、Storage `photos`（private）+Storage RLS を適用済み。**dev実機で 写真アップロード→詳細グリッド表示→RLS を目視確認**。Storageパスは `{company_id}/{site_id}/{photo_id}.jpg`、表示は署名付きURL。`flutter analyze`=No issues / `flutter test`=29件緑。
+- **本番化前の残タスク（運用・コード変更不要）**: prod の Supabase に 0001(認証) / 0002(sites) / 0003(photos+bucket) を順に適用（[docs/SUPABASE_AUTH_SETUP.md](SUPABASE_AUTH_SETUP.md) + [supabase/migrations/](../supabase/migrations/)）。
+- **実装メモ**: feature-first。Repositoryは抽象interface＋Supabase実装でテスト差し替え可。写真は image_picker（撮影時に幅/画質抑制）→ Storage uploadBinary → photos insert → 署名URLで表示。カメラは実機のみ（シミュレータはライブラリ）。
+- **次にやること**: Phase 2（日報機能）。reportsテーブル+RLS、日報の作成/一覧/編集（現場ごと）。着手時に詳細化。
 - **チャットが切れた時の再開方法**: 新しいClaudeチャットで「`docs/ROADMAP.md` を読んで、続きから1ステップずつ案内して」と言う。
 
 ### Phase 1.0 手作業チェックリスト（これを全部 ✅ にすれば 1.0 完了）
