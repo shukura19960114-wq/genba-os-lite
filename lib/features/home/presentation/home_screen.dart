@@ -80,6 +80,13 @@ class HomeScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
                 FilledButton.icon(
+                  key: const Key('home_sites_button'),
+                  onPressed: () => context.push(RoutePaths.sites),
+                  icon: const Icon(Icons.location_city_outlined),
+                  label: const Text('現場一覧へ'),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
                   key: const Key('home_logout_button'),
                   onPressed: authState.isLoading
                       ? null

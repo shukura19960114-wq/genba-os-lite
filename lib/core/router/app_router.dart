@@ -8,6 +8,9 @@ import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/foundation/presentation/connection_check_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/sites/presentation/site_create_screen.dart';
+import '../../features/sites/presentation/site_detail_screen.dart';
+import '../../features/sites/presentation/site_list_screen.dart';
 import 'app_routes.dart';
 
 /// 認証状態に応じたリダイレクト先を返す純粋関数（テスト容易化のため分離）。
@@ -53,6 +56,23 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: RoutePaths.connectionCheck,
         name: RouteNames.connectionCheck,
         builder: (context, state) => const ConnectionCheckScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.sites,
+        name: RouteNames.sites,
+        builder: (context, state) => const SiteListScreen(),
+      ),
+      // '/sites/new' は '/sites/:id' より先に登録する（new が id 扱いされないように）。
+      GoRoute(
+        path: RoutePaths.siteNew,
+        name: RouteNames.siteNew,
+        builder: (context, state) => const SiteCreateScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.siteDetail,
+        name: RouteNames.siteDetail,
+        builder: (context, state) =>
+            SiteDetailScreen(siteId: state.pathParameters['id']!),
       ),
     ],
   );

@@ -5,8 +5,9 @@ abstract final class RoutePaths {
   static const home = '/';
   static const login = '/login';
   static const connectionCheck = '/connection';
-
-  // static const sites = '/sites'; // Phase 1.2
+  static const sites = '/sites';
+  static const siteNew = '/sites/new';
+  static const siteDetail = '/sites/:id'; // 実遷移は '/sites/<id>'
 }
 
 /// ルート名（go_router の name 指定用）。
@@ -14,6 +15,7 @@ abstract final class RouteNames {
   static const home = 'home';
   static const login = 'login';
   static const connectionCheck = 'connectionCheck';
-
-  // static const sites = 'sites';
+  static const sites = 'sites';
+  static const siteNew = 'siteNew';
+  static const siteDetail = 'siteDetail';
 }
