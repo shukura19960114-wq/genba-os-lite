@@ -80,7 +80,7 @@ lib/
 
 | サブ | 内容 | 完了条件 | 状態 |
 |---|---|---|---|
-| **1.0 基盤構築** | Supabase接続・dev/prod Flavor・主要ライブラリ・CI・接続OK画面 | 下の「Phase1.0 完了判定」全YES | 🔄 **コード実装済み／手作業検証中** |
+| **1.0 基盤構築** | Supabase接続・dev/prod Flavor・主要ライブラリ・CI・接続OK画面 | 下の「Phase1.0 完了判定」全YES | ✅ **完了**（iOSで dev/prod とも起動・接続OK確認済み 2026-06-21） |
 | **1.1 認証/ログイン** | companies/profiles + RLS + ログイン画面 + go_router認証ガード | ログイン→現場一覧へ遷移、未ログインは/loginへ | ⬜ |
 | **1.2 現場一覧** | sitesテーブル+RLS、Siteモデル、一覧画面（日本語日付・空/エラー表示） | 自社の現場のみ一覧表示・タップで詳細 | ⬜ |
 | **1.3 写真管理** | photosテーブル+プライベートバケット+Storage RLS、撮影→保存→送信→再送 | 現場に写真を撮って保存・オンラインで自動アップロード | ⬜ |
@@ -103,10 +103,11 @@ lib/
 
 ## 5. ★現在地（YOU ARE HERE）
 
-- **Phase 1.0 の「iOS設定」フェーズ**に入る直前。
-- 完了済み: #1〜#10 ✅／日本語パス対策(リネーム→`kensetsu-ai`)✅／#18 Git push ✅（2026-06-21）。
-  - 当環境に flutter 3.44.2 等が導入済み。`flutter analyze`=No issues / `flutter test`=6件緑 を**再検証済み**（日本語パス問題も解消確認）。
-- **次にやること**: iOS設定 #13（`cd ios && pod install`）→ #14〜#16（Xcodeでdev/prod構成・scheme）→ #17（`flutter run --flavor dev`で「接続OK」）。詳細は [docs/SETUP.md](SETUP.md)。
+- **Phase 1.0（基盤構築）は完了 ✅**（2026-06-21）。次は **Phase 1.1（認証/ログイン）** に着手する。
+- 完了済み: #1〜#18 すべて ✅。iOSシミュレータ(iPhone 17 Pro)で **dev / prod とも起動し「環境：dev/prod」「Supabase接続：OK」を目視確認**。
+  - flavor 正式対応済み: Build Configuration 9種・共有Scheme `dev`/`prod`・Bundle ID は dev=`...genbaOsLite.dev` / prod=`...genbaOsLite`（同居インストール可）。
+  - iOSプラグインは **Swift Package Manager** 解決（Podfile不要）。`flutter analyze`=No issues / `flutter test`=6件緑。
+- **次にやること**: Phase 1.1。companies/profiles テーブル + RLS、ログイン画面、go_router 認証ガード（未ログインは `/login`、ログイン後は現場一覧へ）。
 - **チャットが切れた時の再開方法**: 新しいClaudeチャットで「`docs/ROADMAP.md` を読んで、続きから1ステップずつ案内して」と言う。
 
 ### Phase 1.0 手作業チェックリスト（これを全部 ✅ にすれば 1.0 完了）
@@ -125,11 +126,11 @@ lib/
 | 10 | `flutter test`（緑） | ✅ All tests passed!（6件） |
 | 11 | （Android）`flutter run --flavor dev` 起動確認 | 💤 後回し（Android SDK未導入／iOS優先） |
 | 12 | （Android）`--flavor prod` 切替確認 | 💤 後回し |
-| 13 | iOS: `cd ios && pod install` → Podfileに config マッピング追記 → 再`pod install` | ⬜ |
-| 14 | iOS: Xcodeで Build Configuration 6つ作成（Debug/Release/Profile × dev/prod） | ⬜ |
-| 15 | iOS: 各configに xcconfig 紐付け＋pbxprojのbundle id直書きを `$(PRODUCT_BUNDLE_IDENTIFIER)` に | ⬜ |
-| 16 | iOS: scheme `dev`/`prod` 作成（Shared）＋アクション割当 | ⬜ |
-| 17 | iOS: `flutter run --flavor dev -t lib/main_dev.dart` →「接続OK」 | ⬜ |
+| 13 | iOS: 依存解決は **Swift Package Manager**（Podfile不要と判明。flavor xcconfigは`#include?`でPods無しでも安全） | ✅ |
+| 14 | iOS: Build Configuration 6つ作成（`xcodeproj` gem で自動化。計9種） | ✅ |
+| 15 | iOS: 各configに xcconfig 紐付け＋bundle id直書きを削除（xcconfigの`.dev`が効く） | ✅ |
+| 16 | iOS: 共有 scheme `dev`/`prod` 作成＋アクション割当（`xcodeproj` gem で自動化） | ✅ |
+| 17 | iOS: `flutter run --flavor dev/prod` → dev/prod とも「接続OK」目視確認 | ✅ |
 | 18 | Phase 1.0 を Git コミット＆ push（`55f9a8a Phase 1.0: 基盤構築`） | ✅ 2026-06-21 push済み。**CIゲートはAnalyze+Testのみ**（Androidビルドは後回し方針に合わせCIから除外。Android着手時に`ci.yml`のコメントから復活させる） |
 
 > 詳しい手順は [docs/SETUP.md](SETUP.md) を参照。iOS（13〜17）が最難関。
