@@ -1,18 +1,19 @@
 /// ルートのパス定義。
 ///
-/// Phase 1.0（基盤）では接続確認画面のみ。後続フェーズで /login・/sites 等を追加する。
+/// Phase 1.1（認証）で /（home）・/login を追加。接続確認は /connection に移設。
 abstract final class RoutePaths {
-  static const connectionCheck = '/';
+  static const home = '/';
+  static const login = '/login';
+  static const connectionCheck = '/connection';
 
-  // --- 後続フェーズで有効化（プレースホルダ）---
-  // static const login = '/login';
-  // static const sites = '/sites';
+  // static const sites = '/sites'; // Phase 1.2
 }
 
 /// ルート名（go_router の name 指定用）。
 abstract final class RouteNames {
+  static const home = 'home';
+  static const login = 'login';
   static const connectionCheck = 'connectionCheck';
 
-  // static const login = 'login';
   // static const sites = 'sites';
 }
