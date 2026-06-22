@@ -89,7 +89,7 @@ lib/
 
 | Phase | 内容 | 主なゴール | 状態 |
 |---|---|---|---|
-| **2. 日報機能** | 日報の作成・一覧・編集（PDFで言及） | 現場ごとに日報を記録・閲覧 | ⬜ |
+| **2. 日報機能** | reports+RLS、日報の作成・一覧・詳細・編集（現場ごと） | 現場ごとに日報を記録・閲覧 | ✅ **完了**（dev実機で 作成/一覧/詳細/編集/RLS を確認 2026-06-22。詳細仕様書準拠） |
 | **3. 現場管理の拡充** | 現場の登録/編集/状態管理、メンバー割当 | 現場CRUDが一通り完成 | ⬜ |
 | **4. 写真の本格化** | 永続オフラインキュー、バックグラウンド同期、アルバム/タグ、geo | 電波が悪い現場でも確実に同期 | ⬜（💤の機能を回収） |
 | **5. 通知・連携** | プッシュ通知、現場内コミュニケーション | 重要更新を通知 | ⬜ |
@@ -103,11 +103,11 @@ lib/
 
 ## 5. ★現在地（YOU ARE HERE）
 
-- **🎉 Phase 1（基盤＋初期機能）完了 ✅** — 1.0 基盤 / 1.1 認証 / 1.2 現場一覧 / 1.3 写真管理 すべて dev実機で検証済み（2026-06-21）。次は **Phase 2（日報機能）**。
-- Phase 1.3（写真管理）: dev に photos テーブル+RLS、Storage `photos`（private）+Storage RLS を適用済み。**dev実機で 写真アップロード→詳細グリッド表示→RLS を目視確認**。Storageパスは `{company_id}/{site_id}/{photo_id}.jpg`、表示は署名付きURL。`flutter analyze`=No issues / `flutter test`=29件緑。
-- **本番化前の残タスク（運用・コード変更不要）**: prod の Supabase に 0001(認証) / 0002(sites) / 0003(photos+bucket) を順に適用（[docs/SUPABASE_AUTH_SETUP.md](SUPABASE_AUTH_SETUP.md) + [supabase/migrations/](../supabase/migrations/)）。
-- **実装メモ**: feature-first。Repositoryは抽象interface＋Supabase実装でテスト差し替え可。写真は image_picker（撮影時に幅/画質抑制）→ Storage uploadBinary → photos insert → 署名URLで表示。カメラは実機のみ（シミュレータはライブラリ）。
-- **次にやること**: Phase 2（日報機能）。reportsテーブル+RLS、日報の作成/一覧/編集（現場ごと）。着手時に詳細化。
+- **🎉 Phase 1 ＋ Phase 2（日報機能）完了 ✅** — 1.0 基盤 / 1.1 認証 / 1.2 現場一覧 / 1.3 写真管理 / 2. 日報 すべて dev実機で検証済み。次は **Phase 3（現場管理の拡充）**。
+- Phase 2（日報機能・詳細仕様書準拠）: dev に reports テーブル+RLS+updated_atトリガを適用済み。**dev実機で 日報の作成→一覧→詳細→編集（2人→3人で更新日時更新）→RLS を目視確認**（2026-06-22）。`flutter analyze`=No issues / `flutter test`=41件緑。
+- **本番化前の残タスク（運用・コード変更不要）**: prod の Supabase に 0001(認証) / 0002(sites) / 0003(photos+bucket) / 0004(reports) を順に適用（[docs/SUPABASE_AUTH_SETUP.md](SUPABASE_AUTH_SETUP.md) + [supabase/migrations/](../supabase/migrations/)）。
+- **実装メモ**: feature-first。Repositoryは抽象interface＋Supabase実装でテスト差し替え可。日報フォームは S2作成/S4編集を共有、autoDispose Controller、書き込みは toJson 不使用でマップ明示構築（report_date は yyyy-MM-dd 送信）。company_id/created_by はサーバ既定値に任せる。
+- **次にやること**: Phase 3（現場管理の拡充）。現場の編集/状態管理・メンバー割当 等。着手時に詳細化。
 - **チャットが切れた時の再開方法**: 新しいClaudeチャットで「`docs/ROADMAP.md` を読んで、続きから1ステップずつ案内して」と言う。
 
 ### Phase 1.0 手作業チェックリスト（これを全部 ✅ にすれば 1.0 完了）
