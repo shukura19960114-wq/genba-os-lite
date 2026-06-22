@@ -90,7 +90,7 @@ lib/
 | Phase | 内容 | 主なゴール | 状態 |
 |---|---|---|---|
 | **2. 日報機能** | reports+RLS、日報の作成・一覧・詳細・編集（現場ごと） | 現場ごとに日報を記録・閲覧 | ✅ **完了**（dev実機で 作成/一覧/詳細/編集/RLS を確認 2026-06-22。詳細仕様書準拠） |
-| **3. 現場管理の拡充** | 現場の登録/編集/状態管理、メンバー割当 | 現場CRUDが一通り完成 | ⬜ |
+| **3. 現場管理の拡充** | 現場の編集・状態管理（進行中/完了/中止） | 顧客ヒアリング可能な現場運用MVP完成 | ✅ **完了**（dev実機で 編集/ステータス変更/RLS 確認 2026-06-22。削除UI・メンバー割当は除外→Phase 7） |
 | **4. 写真の本格化** | 永続オフラインキュー、バックグラウンド同期、アルバム/タグ、geo | 電波が悪い現場でも確実に同期 | ⬜（💤の機能を回収） |
 | **5. 通知・連携** | プッシュ通知、現場内コミュニケーション | 重要更新を通知 | ⬜ |
 | **6. 帳票・出力** | 報告書/写真台帳のPDF出力・共有 | 現場記録を成果物として出力 | ⬜ |
@@ -103,11 +103,12 @@ lib/
 
 ## 5. ★現在地（YOU ARE HERE）
 
-- **🎉 Phase 1 ＋ Phase 2（日報機能）完了 ✅** — 1.0 基盤 / 1.1 認証 / 1.2 現場一覧 / 1.3 写真管理 / 2. 日報 すべて dev実機で検証済み。次は **Phase 3（現場管理の拡充）**。
-- Phase 2（日報機能・詳細仕様書準拠）: dev に reports テーブル+RLS+updated_atトリガを適用済み。**dev実機で 日報の作成→一覧→詳細→編集（2人→3人で更新日時更新）→RLS を目視確認**（2026-06-22）。`flutter analyze`=No issues / `flutter test`=41件緑。
-- **本番化前の残タスク（運用・コード変更不要）**: prod の Supabase に 0001(認証) / 0002(sites) / 0003(photos+bucket) / 0004(reports) を順に適用（[docs/SUPABASE_AUTH_SETUP.md](SUPABASE_AUTH_SETUP.md) + [supabase/migrations/](../supabase/migrations/)）。
-- **実装メモ**: feature-first。Repositoryは抽象interface＋Supabase実装でテスト差し替え可。日報フォームは S2作成/S4編集を共有、autoDispose Controller、書き込みは toJson 不使用でマップ明示構築（report_date は yyyy-MM-dd 送信）。company_id/created_by はサーバ既定値に任せる。
-- **次にやること**: Phase 3（現場管理の拡充）。現場の編集/状態管理・メンバー割当 等。着手時に詳細化。
+- **🎉 Phase 1 ＋ 2 ＋ 3 完了 ✅** — 基盤/認証/現場一覧/写真/日報/現場編集 すべて dev実機で検証済み。**顧客ヒアリング可能な現場運用MVP が完成**。次は **Phase 4（写真の本格化）**。
+- Phase 3（現場管理の拡充）: 現場の**編集（名称/住所）＋ステータス変更（進行中/完了/中止）**を実装。**dev実機で 編集→ステータス完了→詳細/一覧反映→RLS を目視確認**（2026-06-22）。`flutter analyze`=No issues / `flutter test`=43件緑。**DB変更なし**（0002のstatus/update RLSを流用）。
+  - スコープ判断: **削除UI・Delete APIは未実装**（cascade事故リスク回避）、**メンバー割当は Phase 7（権限管理）へ延期**。
+- **本番化前の残タスク（運用・コード変更不要）**: prod の Supabase に 0001(認証) / 0002(sites) / 0003(photos+bucket) / 0004(reports) を順に適用。Phase 3 はDB変更なしのため追加SQLなし。
+- **実装メモ**: feature-first。現場編集は SiteEditController（autoDispose・メソッド名は `submit`。`update` は AsyncNotifier 予約名のため不可）。ステータスUIは日報の天候と同じ DropdownButtonFormField で統一。
+- **次にやること**: Phase 4（写真の本格化）。永続オフラインキュー・バックグラウンド同期・アルバム/タグ等。着手時に詳細化。
 - **チャットが切れた時の再開方法**: 新しいClaudeチャットで「`docs/ROADMAP.md` を読んで、続きから1ステップずつ案内して」と言う。
 
 ### Phase 1.0 手作業チェックリスト（これを全部 ✅ にすれば 1.0 完了）
