@@ -14,6 +14,7 @@ import '../../features/reports/presentation/report_form_screen.dart';
 import '../../features/reports/presentation/report_list_screen.dart';
 import '../../features/sites/presentation/site_create_screen.dart';
 import '../../features/sites/presentation/site_detail_screen.dart';
+import '../../features/sites/presentation/site_edit_screen.dart';
 import '../../features/sites/presentation/site_list_screen.dart';
 import 'app_routes.dart';
 
@@ -77,6 +78,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: RouteNames.siteDetail,
         builder: (context, state) =>
             SiteDetailScreen(siteId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: RoutePaths.siteEdit,
+        name: RouteNames.siteEdit,
+        builder: (context, state) =>
+            SiteEditScreen(siteId: state.pathParameters['id']!),
       ),
       // 日報（現場配下）。'/reports/new' を '/reports/:reportId' より先に登録する。
       GoRoute(

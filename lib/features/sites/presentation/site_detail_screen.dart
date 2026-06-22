@@ -21,7 +21,16 @@ class SiteDetailScreen extends ConsumerWidget {
     final siteAsync = ref.watch(siteDetailProvider(siteId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('現場の詳細')),
+      appBar: AppBar(
+        title: const Text('現場の詳細'),
+        actions: [
+          IconButton(
+            key: const Key('site_edit_button'),
+            icon: const Icon(Icons.edit),
+            onPressed: () => context.push('/sites/$siteId/edit'),
+          ),
+        ],
+      ),
       body: AsyncValueWidget<Site?>(
         value: siteAsync,
         data: (site) {

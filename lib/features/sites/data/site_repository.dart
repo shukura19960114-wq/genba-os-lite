@@ -15,6 +15,14 @@ abstract interface class SiteRepository {
   /// 現場を新規作成して作成後の行を返す。
   /// company_id は DB 既定値（current_company_id()）で自動設定される。
   Future<Site> createSite({required String name, String? address});
+
+  /// 現場を更新して更新後の行を返す（company_id は変更しない＝送らない）。
+  Future<Site> updateSite({
+    required String id,
+    required String name,
+    String? address,
+    required String status,
+  });
 }
 
 /// Supabase 実装。
@@ -51,6 +59,28 @@ class SupabaseSiteRepository implements SiteRepository {
           if (trimmedAddress != null && trimmedAddress.isNotEmpty)
             'address': trimmedAddress,
         })
+        .select()
+        .single();
+    return Site.fromJson(data);
+  }
+
+  @override
+  Future<Site> updateSite({
+    required String id,
+    required String name,
+    String? address,
+    required String status,
+  }) async {
+    final trimmed = address?.trim();
+    final data = await _client
+        .from('sites')
+        .update({
+          'name': name.trim(),
+          'address': (trimmed == null || trimmed.isEmpty) ? null : trimmed,
+          'status': status,
+          // company_id は変更しない（送らない）
+        })
+        .eq('id', id)
         .select()
         .single();
     return Site.fromJson(data);
