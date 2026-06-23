@@ -5,8 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../../shared/widgets/async_value_widget.dart';
 import '../../photos/application/photo_upload_controller.dart';
 import '../../photos/application/photos_providers.dart';
-import '../../photos/data/image_picker_service.dart';
 import '../../photos/data/photo.dart';
+import '../../photos/presentation/photo_add.dart';
+import '../../photos/presentation/photo_thumbnail.dart';
 import '../application/sites_providers.dart';
 import '../data/site.dart';
 
@@ -118,24 +119,28 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
-/// 写真セクション（一覧グリッド + 追加ボタン）。
+/// 写真セクション（枚数・先頭グリッド・拡大遷移・追加）。
 class _PhotosSection extends ConsumerWidget {
   const _PhotosSection({required this.siteId, required this.companyId});
 
   final String siteId;
   final String? companyId;
 
+  static const _previewCount = 6;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final photosAsync = ref.watch(photosProvider(siteId));
     final isUploading = ref.watch(photoUploadControllerProvider).isLoading;
+    final count = photosAsync.value?.length ?? 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
           children: [
-            Text('写真', style: Theme.of(context).textTheme.titleMedium),
+            Text(count > 0 ? '写真 ($count)' : '写真',
+                style: Theme.of(context).textTheme.titleMedium),
             const Spacer(),
             if (isUploading)
               const Padding(
@@ -146,13 +151,20 @@ class _PhotosSection extends ConsumerWidget {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
               ),
-            FilledButton.tonalIcon(
+            if (count > _previewCount)
+              TextButton(
+                key: const Key('photo_see_all_button'),
+                onPressed: () => context.push('/sites/$siteId/photos'),
+                child: const Text('すべて見る'),
+              ),
+            IconButton(
               key: const Key('photo_add_button'),
+              tooltip: '写真を追加',
               onPressed: (isUploading || companyId == null)
                   ? null
-                  : () => _onAddPressed(context, ref),
+                  : () => showAddPhotoSheet(context, ref,
+                      siteId: siteId, companyId: companyId!),
               icon: const Icon(Icons.add_a_photo_outlined),
-              label: const Text('追加'),
             ),
           ],
         ),
@@ -169,6 +181,9 @@ class _PhotosSection extends ConsumerWidget {
                 ),
               );
             }
+            final preview = photos.length > _previewCount
+                ? photos.sublist(0, _previewCount)
+                : photos;
             return GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -177,8 +192,14 @@ class _PhotosSection extends ConsumerWidget {
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
               ),
-              itemCount: photos.length,
-              itemBuilder: (context, i) => _PhotoTile(path: photos[i].path),
+              itemCount: preview.length,
+              itemBuilder: (context, i) => GestureDetector(
+                onTap: () => context.push('/sites/$siteId/photos/$i'),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: PhotoThumbnail(path: preview[i].path),
+                ),
+              ),
             );
           },
           loading: () => const Padding(
@@ -192,81 +213,6 @@ class _PhotosSection extends ConsumerWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Future<void> _onAddPressed(BuildContext context, WidgetRef ref) async {
-    final cid = companyId;
-    if (cid == null) return;
-
-    final messenger = ScaffoldMessenger.of(context);
-    final source = await showModalBottomSheet<PhotoSource>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('カメラで撮影'),
-              onTap: () => Navigator.of(context).pop(PhotoSource.camera),
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('フォトライブラリから選択'),
-              onTap: () => Navigator.of(context).pop(PhotoSource.gallery),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (source == null) return;
-
-    final result = await ref
-        .read(photoUploadControllerProvider.notifier)
-        .addPhoto(siteId: siteId, companyId: cid, source: source);
-
-    final message = switch (result) {
-      PhotoUploadResult.uploaded => '写真をアップロードしました',
-      PhotoUploadResult.cancelled => null,
-      PhotoUploadResult.failed => 'アップロードに失敗しました',
-    };
-    if (message != null) {
-      messenger.showSnackBar(SnackBar(content: Text(message)));
-    }
-  }
-}
-
-/// 1枚の写真タイル（署名付きURLを取得して表示）。
-class _PhotoTile extends ConsumerWidget {
-  const _PhotoTile({required this.path});
-
-  final String path;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final urlAsync = ref.watch(photoUrlProvider(path));
-    final placeholderColor = Theme.of(context).colorScheme.surfaceContainerHighest;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: urlAsync.when(
-        data: (url) => Image.network(
-          url,
-          fit: BoxFit.cover,
-          loadingBuilder: (context, child, progress) =>
-              progress == null ? child : Container(color: placeholderColor),
-          errorBuilder: (context, _, _) => Container(
-            color: placeholderColor,
-            child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
-          ),
-        ),
-        loading: () => Container(color: placeholderColor),
-        error: (_, _) => Container(
-          color: placeholderColor,
-          child: const Icon(Icons.error_outline, color: Colors.grey),
-        ),
-      ),
     );
   }
 }

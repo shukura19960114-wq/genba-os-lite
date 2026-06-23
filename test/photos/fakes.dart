@@ -14,6 +14,7 @@ class FakePhotoRepository implements PhotoRepository {
 
   bool uploadCalled = false;
   String? lastUploadedSiteId;
+  int uploadCount = 0;
 
   @override
   Future<List<Photo>> listPhotos(String siteId) async =>
@@ -27,6 +28,7 @@ class FakePhotoRepository implements PhotoRepository {
     String contentType = 'image/jpeg',
   }) async {
     uploadCalled = true;
+    uploadCount++;
     lastUploadedSiteId = siteId;
     if (failOnUpload) throw Exception('アップロード失敗（テスト）');
     final photo = Photo(
@@ -46,9 +48,10 @@ class FakePhotoRepository implements PhotoRepository {
 
 /// テスト用 [ImagePickerService] フェイク。bytes が null ならキャンセル相当。
 class FakeImagePickerService implements ImagePickerService {
-  FakeImagePickerService({this.bytes});
+  FakeImagePickerService({this.bytes, this.multi = const []});
 
   final Uint8List? bytes;
+  final List<Uint8List> multi;
   PhotoSource? lastSource;
 
   @override
@@ -56,4 +59,7 @@ class FakeImagePickerService implements ImagePickerService {
     lastSource = source;
     return bytes;
   }
+
+  @override
+  Future<List<Uint8List>> pickMultiple() async => multi;
 }

@@ -10,6 +10,10 @@ abstract final class RoutePaths {
   static const siteDetail = '/sites/:id'; // 実遷移は '/sites/<id>'
   static const siteEdit = '/sites/:id/edit';
 
+  // Phase 4 写真（現場配下）。実遷移は '/sites/<id>/photos[/<index>]'
+  static const sitePhotos = '/sites/:id/photos';
+  static const sitePhotoView = '/sites/:id/photos/:index';
+
   // Phase 2 日報（現場配下）。実遷移は '/sites/<siteId>/reports[/...]'
   static const siteReports = '/sites/:siteId/reports';
   static const siteReportNew = '/sites/:siteId/reports/new';
@@ -26,6 +30,9 @@ abstract final class RouteNames {
   static const siteNew = 'siteNew';
   static const siteDetail = 'siteDetail';
   static const siteEdit = 'siteEdit';
+
+  static const sitePhotos = 'sitePhotos';
+  static const sitePhotoView = 'sitePhotoView';
 
   static const siteReports = 'siteReports';
   static const siteReportNew = 'siteReportNew';

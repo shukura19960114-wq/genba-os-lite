@@ -8,6 +8,8 @@ import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/foundation/presentation/connection_check_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/photos/presentation/photo_gallery_screen.dart';
+import '../../features/photos/presentation/photo_viewer_screen.dart';
 import '../../features/reports/presentation/report_detail_screen.dart';
 import '../../features/reports/presentation/report_edit_screen.dart';
 import '../../features/reports/presentation/report_form_screen.dart';
@@ -84,6 +86,21 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: RouteNames.siteEdit,
         builder: (context, state) =>
             SiteEditScreen(siteId: state.pathParameters['id']!),
+      ),
+      // 写真（現場配下）。'/photos' を '/photos/:index' より先に登録する。
+      GoRoute(
+        path: RoutePaths.sitePhotos,
+        name: RouteNames.sitePhotos,
+        builder: (context, state) =>
+            PhotoGalleryScreen(siteId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: RoutePaths.sitePhotoView,
+        name: RouteNames.sitePhotoView,
+        builder: (context, state) => PhotoViewerScreen(
+          siteId: state.pathParameters['id']!,
+          initialIndex: int.tryParse(state.pathParameters['index'] ?? '0') ?? 0,
+        ),
       ),
       // 日報（現場配下）。'/reports/new' を '/reports/:reportId' より先に登録する。
       GoRoute(
