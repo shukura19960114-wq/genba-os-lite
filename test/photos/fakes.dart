@@ -6,11 +6,15 @@ import 'package:genba_os_lite/features/photos/data/photo_repository.dart';
 
 /// テスト用 [PhotoRepository] フェイク。
 class FakePhotoRepository implements PhotoRepository {
-  FakePhotoRepository({List<Photo> initial = const [], this.failOnUpload = false})
-      : _photos = [...initial];
+  FakePhotoRepository({
+    List<Photo> initial = const [],
+    this.failOnUpload = false,
+    this.failOnDownload = false,
+  }) : _photos = [...initial];
 
   final List<Photo> _photos;
   final bool failOnUpload;
+  final bool failOnDownload;
 
   bool uploadCalled = false;
   String? lastUploadedSiteId;
@@ -44,6 +48,15 @@ class FakePhotoRepository implements PhotoRepository {
   @override
   Future<String> createSignedUrl(String path, {int expiresInSeconds = 3600}) async =>
       'https://example.com/signed/$path';
+
+  int downloadCount = 0;
+
+  @override
+  Future<Uint8List> downloadPhoto(String path) async {
+    downloadCount++;
+    if (failOnDownload) throw Exception('ダウンロード失敗（テスト）');
+    return Uint8List.fromList(const [0, 1, 2, 3]);
+  }
 }
 
 /// テスト用 [ImagePickerService] フェイク。bytes が null ならキャンセル相当。

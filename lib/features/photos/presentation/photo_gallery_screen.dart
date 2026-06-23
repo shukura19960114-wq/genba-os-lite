@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../export/application/pdf_export_controller.dart';
 import '../../sites/application/sites_providers.dart';
 import '../application/photos_providers.dart';
 import '../data/photo.dart';
@@ -23,8 +24,11 @@ class PhotoGalleryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final photosAsync = ref.watch(photosProvider(siteId));
-    // 追加に必要な companyId は既存 siteDetailProvider から取得（新Providerなし）。
-    final companyId = ref.watch(siteDetailProvider(siteId)).value?.companyId;
+    // 追加・台帳PDFに必要な現場情報は既存 siteDetailProvider から取得（新Providerなし）。
+    final site = ref.watch(siteDetailProvider(siteId)).value;
+    final companyId = site?.companyId;
+    final exporting = ref.watch(pdfExportControllerProvider).isLoading;
+    final photoCount = photosAsync.value?.length ?? 0;
 
     final title = photosAsync.maybeWhen(
       data: (photos) => '現場の写真 (${photos.length})',
@@ -32,7 +36,35 @@ class PhotoGalleryScreen extends ConsumerWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+        actions: [
+          IconButton(
+            key: const Key('ledger_pdf_button'),
+            tooltip: '写真台帳PDF',
+            icon: exporting
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.picture_as_pdf_outlined),
+            onPressed: (exporting || site == null || photoCount == 0)
+                ? null
+                : () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final ok = await ref
+                        .read(pdfExportControllerProvider.notifier)
+                        .exportPhotoLedger(siteId: siteId, siteName: site.name);
+                    if (!ok) {
+                      messenger.showSnackBar(
+                        const SnackBar(content: Text('PDFの出力に失敗しました')),
+                      );
+                    }
+                  },
+          ),
+        ],
+      ),
       floatingActionButton: companyId == null
           ? null
           : FloatingActionButton.extended(

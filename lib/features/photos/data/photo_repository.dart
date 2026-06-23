@@ -23,6 +23,9 @@ abstract interface class PhotoRepository {
 
   /// private バケットの表示用・署名付きURLを生成する。
   Future<String> createSignedUrl(String path, {int expiresInSeconds = 3600});
+
+  /// Storage から画像バイトを取得する（写真台帳PDFの画像埋め込み用）。RLSで自社のみ。
+  Future<Uint8List> downloadPhoto(String path);
 }
 
 /// Supabase 実装。
@@ -72,6 +75,11 @@ class SupabasePhotoRepository implements PhotoRepository {
   @override
   Future<String> createSignedUrl(String path, {int expiresInSeconds = 3600}) {
     return _client.storage.from(_bucket).createSignedUrl(path, expiresInSeconds);
+  }
+
+  @override
+  Future<Uint8List> downloadPhoto(String path) {
+    return _client.storage.from(_bucket).download(path);
   }
 }
 

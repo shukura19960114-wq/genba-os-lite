@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../export/application/pdf_export_controller.dart';
 import '../application/report_providers.dart';
 
 final _dateFmt = DateFormat('yyyy/MM/dd');
@@ -22,11 +23,36 @@ class ReportDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final reportAsync = ref.watch(reportDetailProvider(reportId));
+    final exporting = ref.watch(pdfExportControllerProvider).isLoading;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('日報詳細'),
         actions: [
+          IconButton(
+            key: const Key('report_pdf_button'),
+            tooltip: 'PDF出力',
+            icon: exporting
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.picture_as_pdf_outlined),
+            onPressed: exporting
+                ? null
+                : () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final ok = await ref
+                        .read(pdfExportControllerProvider.notifier)
+                        .exportReport(reportId);
+                    if (!ok) {
+                      messenger.showSnackBar(
+                        const SnackBar(content: Text('PDFの出力に失敗しました')),
+                      );
+                    }
+                  },
+          ),
           IconButton(
             key: const Key('report_edit_button'),
             icon: const Icon(Icons.edit),
