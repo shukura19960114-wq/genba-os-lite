@@ -103,9 +103,12 @@
 `ImagePickerService` に `pickMultiple()`（image_picker の `pickMultiImage`）を追加 ＝ *新規依存なし*。
 
 = 5. Riverpod構成
-既存 `photosProvider.family(siteId)` / `photoUrlProvider.family(path)` を流用。
-`PhotoUploadController` に `addPhotos()` 追加（複数選択→ループupload→invalidate、結果に追加/失敗枚数）。既存 `addPhoto`（カメラ1枚）は維持。
-ビューアの現在indexは画面ローカル（`PageController`）。
+*新規Provider追加なし（既存構成の再利用を最優先）。* ギャラリー/ビューアとも既存2つのみで実装可能：
+- `photosProvider.family(siteId)`：一覧・PageView元データ・*枚数（photos.length）*・日時（createdAt）・refresh対象
+- `photoUrlProvider.family(path)`：各タイル/各ページの署名付きURL
+
+`PhotoUploadController` に `addPhotos()` を*メソッド追加*（複数選択→ループupload→invalidate、結果に追加/失敗枚数）。既存 `photoUploadControllerProvider` 流用、既存 `addPhoto`（カメラ1枚）は維持。
+ビューアの現在indexは*画面ローカル（PageController）*。`photoCountProvider` は作らない。
 
 = 6. 完了条件
 #table(columns: (auto, 1fr), stroke: 0.5pt + luma(215), inset: (x: 7pt, y: 5pt),
