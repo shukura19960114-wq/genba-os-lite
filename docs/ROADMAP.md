@@ -5,7 +5,7 @@
 > **再開時のお願い（AIへ）**: まず「★現在地」を確認し、未完了の直近ステップから1つずつ案内すること。
 > ユーザーは開発初心者。**一度に1手順だけ**提示する。
 
-最終更新: 2026-06-21
+最終更新: 2026-06-24
 
 ---
 
@@ -92,8 +92,8 @@ lib/
 | **2. 日報機能** | reports+RLS、日報の作成・一覧・詳細・編集（現場ごと） | 現場ごとに日報を記録・閲覧 | ✅ **完了**（dev実機で 作成/一覧/詳細/編集/RLS を確認 2026-06-22。詳細仕様書準拠） |
 | **3. 現場管理の拡充** | 現場の編集・状態管理（進行中/完了/中止） | 顧客ヒアリング可能な現場運用MVP完成 | ✅ **完了**（dev実機で 編集/ステータス変更/RLS 確認 2026-06-22。削除UI・メンバー割当は除外→Phase 7） |
 | **4. 写真機能の本格化** | 複数追加・拡大表示（スワイプ/ズーム）・撮影日時・現場別ギャラリー・枚数表示 | 建設会社が現場写真を実用レベルで管理 | ✅ **完了**（dev実機で 複数追加/拡大/スワイプ/ズーム/日時/枚数 を確認 2026-06-23）。※オフラインキュー/geo/動画/AIは対象外（後続/非対象） |
-| **5. 通知・連携** | プッシュ通知、現場内コミュニケーション | 重要更新を通知 | ⬜ |
-| **6. 帳票・出力** | 報告書/写真台帳のPDF出力・共有 | 現場記録を成果物として出力 | ⬜ |
+| **6. 帳票・出力** | 日報PDF・写真台帳PDFの出力＆OS共有（pdf/printing） | 現場記録を成果物として出力 | ✅ **完了**（2026-06-24。analyze=No issues / test=52件緑 / iOSビルド(printing SPM)成功 / CI緑。実フォントでの日本語PDF描画をローカルで目視確認。DB変更なし。テンプレ編集/Excel/署名/月次集計は非対象） |
+| **5. 通知・連携** | プッシュ通知、現場内コミュニケーション | 重要更新を通知 | ⬜（Phase 6 を先行実施。次の候補） |
 | **7. 組織・権限管理** | 招待フロー、ロール（owner/admin/member）、管理画面 | 会社単位で安全に運用 | ⬜ |
 | **8. 品質強化** | テスト網羅、クラッシュ監視、パフォーマンス、アクセシビリティ | リリース品質に到達 | ⬜ |
 | **9. ベータ検証** | TestFlight / Google Play内部テスト配信、社内ドッグフード | 実機ベータで重大バグ0 | ⬜ |
@@ -103,12 +103,14 @@ lib/
 
 ## 5. ★現在地（YOU ARE HERE）
 
-- **🎉 Phase 1〜4 完了 ✅** — 基盤/認証/現場(一覧・編集)/日報/写真(本格化) すべて dev実機で検証済み。次は **Phase 5（通知・連携）**。
-- Phase 4（写真機能の本格化）: 複数追加（`pickMultiImage`）・拡大ビューア（PageViewスワイプ＋InteractiveViewerズーム）・撮影日時（created_at）・現場別ギャラリー・枚数表示。**dev実機で 1→5枚の複数追加→枚数表示→拡大(5/5)/スワイプ/日時 を目視確認**（2026-06-23）。`flutter analyze`=No issues / `flutter test`=46件緑。
-  - 設計：**新Provider・新Repository・DB変更・新規依存なし**。既存 photosProvider/photoUrlProvider/PhotoRepository を流用。`PhotoThumbnail`/`showAddPhotoSheet` を共通化。**AI/GPS/動画/PDF/写真削除/オフライン同期は非対象**。
-- **本番化前の残タスク（運用・コード変更不要）**: prod の Supabase に 0001(認証)/0002(sites)/0003(photos+bucket)/0004(reports) を順に適用。Phase 4 はDB変更なしのため追加SQLなし。
-- **実装メモ**: feature-first。写真の複数追加は `addPhotos`（uploadPhoto をループ）。ビューアの現在indexは画面ローカル（PageController）。AsyncValueの値取得は `.value`（`valueOrNull` は当バージョン非対応）。
-- **次にやること**: Phase 5（通知・連携）。プッシュ通知・現場内コミュニケーション等。着手時に詳細化（または実利用ヒアリングで Phase 5〜7 の優先度を再評価）。
+- **🎉 Phase 1〜4 ＋ 6 完了 ✅** — 基盤/認証/現場(一覧・編集)/日報/写真(本格化)/帳票PDF出力。次は **Phase 5（通知・連携）** または **Phase 7（組織・権限）**。
+- Phase 6（帳票・PDF出力）: **日報PDF** と **写真台帳PDF** を既存データ流用で生成し、OS共有シート（`printing`）で共有。日本語フォントは `PdfGoogleFonts.notoSansJPRegular` を実行時取得（アセット同梱なし）。`flutter analyze`=No issues / `flutter test`=**52件緑**（新規6: controller 5 + smoke 1）。iOSシミュレータビルド成功（printing は SPM 対応）。CI緑（`b7603ff`）。**実フォントでの日本語PDF描画（日報の項目テーブル＋作業内容、写真台帳の3列グリッド＋撮影日時＋自動改ページ）をローカルでPNG目視確認**（2026-06-24）。
+  - 設計：**新Repositoryなし／DB変更なし**。`PdfService`（PrintingPdfService）＋ `PdfExportController`（autoDispose）を追加。`PhotoRepository.downloadPhoto` を1メソッド追加（Storageバイト取得）。日報詳細・写真ギャラリーに PDF アクションを追加（新規画面なし）。**テンプレ編集／Excel・CSV／署名・押印／クラウド保存・メール送信／月次集計／削除は非対象**。
+  - 残：アプリ内ボタン→OS共有シート表示の **端末タップ最終確認**（アプリは dev シミュレータにインストール・起動済み）。生成・描画・ビルド・CIは検証済みのため、共有シート表示は環境依存の最終目視のみ。
+- Phase 4（写真機能の本格化）: 複数追加（`pickMultiImage`）・拡大ビューア（PageViewスワイプ＋InteractiveViewerズーム）・撮影日時（created_at）・現場別ギャラリー・枚数表示。**dev実機で確認**（2026-06-23）。
+- **本番化前の残タスク（運用・コード変更不要）**: prod の Supabase に 0001(認証)/0002(sites)/0003(photos+bucket)/0004(reports) を順に適用。Phase 6 はDB変更なしのため追加SQLなし。
+- **実装メモ**: feature-first。PDFは `lib/features/export/`（data: `PdfService`、application: `PdfExportController`）。共有は `Printing.sharePdf`。日本語フォントは注入可（テストは Latin フォント注入でネット非依存）。AsyncValueの値取得は `.value`。
+- **次にやること**: Phase 5（通知・連携）または Phase 7（組織・権限）。着手時に要件定義書→承認→実装仕様書→実装の順（Phase 2〜6 と同じ流れ）。
 - **チャットが切れた時の再開方法**: 新しいClaudeチャットで「`docs/ROADMAP.md` を読んで、続きから1ステップずつ案内して」と言う。
 
 ### Phase 1.0 手作業チェックリスト（これを全部 ✅ にすれば 1.0 完了）
