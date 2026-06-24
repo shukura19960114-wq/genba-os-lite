@@ -5,7 +5,7 @@
 > **再開時のお願い（AIへ）**: まず「★現在地」を確認し、未完了の直近ステップから1つずつ案内すること。
 > ユーザーは開発初心者。**一度に1手順だけ**提示する。
 
-最終更新: 2026-06-24
+最終更新: 2026-06-25
 
 ---
 
@@ -93,8 +93,8 @@ lib/
 | **3. 現場管理の拡充** | 現場の編集・状態管理（進行中/完了/中止） | 顧客ヒアリング可能な現場運用MVP完成 | ✅ **完了**（dev実機で 編集/ステータス変更/RLS 確認 2026-06-22。削除UI・メンバー割当は除外→Phase 7） |
 | **4. 写真機能の本格化** | 複数追加・拡大表示（スワイプ/ズーム）・撮影日時・現場別ギャラリー・枚数表示 | 建設会社が現場写真を実用レベルで管理 | ✅ **完了**（dev実機で 複数追加/拡大/スワイプ/ズーム/日時/枚数 を確認 2026-06-23）。※オフラインキュー/geo/動画/AIは対象外（後続/非対象） |
 | **6. 帳票・出力** | 日報PDF・写真台帳PDFの出力＆OS共有（pdf/printing） | 現場記録を成果物として出力 | ✅ **完了**（2026-06-24。analyze=No issues / test=52件緑 / iOSビルド(printing SPM)成功 / CI緑。実フォントでの日本語PDF描画をローカルで目視確認。DB変更なし。テンプレ編集/Excel/署名/月次集計は非対象） |
-| **5. 通知・連携** | プッシュ通知、現場内コミュニケーション | 重要更新を通知 | ⬜（Phase 6 を先行実施。次の候補） |
-| **7. 組織・権限管理** | 招待フロー、ロール（owner/admin/member）、管理画面 | 会社単位で安全に運用 | ⬜ |
+| **7. 組織・権限管理** | サインアップ・招待コード・ロール(owner/admin/member)・メンバー管理・現場の担当割当 | 会社単位で安全に複数人運用 | ✅ **完了**（2026-06-25。analyze=No issues / test=73件緑 / iOSビルド成功 / CI緑(7a/7b/7c)。dev実機で サインアップ→会社作成／招待コード発行→別アカ参加／ロール変更／担当割当 を確認。migration 0005 適用。除名・owner付替えは非対象） |
+| **5. 通知・連携** | プッシュ通知、現場内コミュニケーション | 重要更新を通知 | ⬜（**飛ばし中**。Phase 6→7 を先行。APNs/FCM の証明書設定が必要なため後着手） |
 | **8. 品質強化** | テスト網羅、クラッシュ監視、パフォーマンス、アクセシビリティ | リリース品質に到達 | ⬜ |
 | **9. ベータ検証** | TestFlight / Google Play内部テスト配信、社内ドッグフード | 実機ベータで重大バグ0 | ⬜ |
 | **10. ストア公開・ローンチ** | アイコン/署名/ストア申請（App Store・Google Play）、運用体制 | 本番リリース | ⬜ |
@@ -103,14 +103,15 @@ lib/
 
 ## 5. ★現在地（YOU ARE HERE）
 
-- **🎉 Phase 1〜4 ＋ 6 完了 ✅** — 基盤/認証/現場(一覧・編集)/日報/写真(本格化)/帳票PDF出力。次は **Phase 5（通知・連携）** または **Phase 7（組織・権限）**。
-- Phase 6（帳票・PDF出力）: **日報PDF** と **写真台帳PDF** を既存データ流用で生成し、OS共有シート（`printing`）で共有。日本語フォントは `PdfGoogleFonts.notoSansJPRegular` を実行時取得（アセット同梱なし）。`flutter analyze`=No issues / `flutter test`=**52件緑**（新規6: controller 5 + smoke 1）。iOSシミュレータビルド成功（printing は SPM 対応）。CI緑（`b7603ff`）。**実フォントでの日本語PDF描画（日報の項目テーブル＋作業内容、写真台帳の3列グリッド＋撮影日時＋自動改ページ）をローカルでPNG目視確認**（2026-06-24）。
-  - 設計：**新Repositoryなし／DB変更なし**。`PdfService`（PrintingPdfService）＋ `PdfExportController`（autoDispose）を追加。`PhotoRepository.downloadPhoto` を1メソッド追加（Storageバイト取得）。日報詳細・写真ギャラリーに PDF アクションを追加（新規画面なし）。**テンプレ編集／Excel・CSV／署名・押印／クラウド保存・メール送信／月次集計／削除は非対象**。
-  - 残：アプリ内ボタン→OS共有シート表示の **端末タップ最終確認**（アプリは dev シミュレータにインストール・起動済み）。生成・描画・ビルド・CIは検証済みのため、共有シート表示は環境依存の最終目視のみ。
-- Phase 4（写真機能の本格化）: 複数追加（`pickMultiImage`）・拡大ビューア（PageViewスワイプ＋InteractiveViewerズーム）・撮影日時（created_at）・現場別ギャラリー・枚数表示。**dev実機で確認**（2026-06-23）。
-- **本番化前の残タスク（運用・コード変更不要）**: prod の Supabase に 0001(認証)/0002(sites)/0003(photos+bucket)/0004(reports) を順に適用。Phase 6 はDB変更なしのため追加SQLなし。
-- **実装メモ**: feature-first。PDFは `lib/features/export/`（data: `PdfService`、application: `PdfExportController`）。共有は `Printing.sharePdf`。日本語フォントは注入可（テストは Latin フォント注入でネット非依存）。AsyncValueの値取得は `.value`。
-- **次にやること**: Phase 5（通知・連携）または Phase 7（組織・権限）。着手時に要件定義書→承認→実装仕様書→実装の順（Phase 2〜6 と同じ流れ）。
+- **🎉 Phase 1〜4 ＋ 6 ＋ 7 完了 ✅** — 基盤/認証/現場/日報/写真(本格化)/帳票PDF/組織・権限。**残るは Phase 5（通知・連携）と 8〜10**。
+- Phase 7（組織・権限管理）: **サインアップ**／**会社参加（招待コード）・会社作成**／**ロール**(owner/admin/member)＋権限ゲート(UI＋RLS/RPC)／**メンバー管理**(一覧・ロール変更)／**招待コード**(発行・失効)／**現場の担当割当**(site_members)。`flutter analyze`=No issues / `flutter test`=**73件緑**（Phase 7 で新規21件）。iOSビルド成功・CI緑（7a `727bec4`／7b `a56197b`／7c `44001ed`）。**dev実機で サインアップ→会社作成／招待コード発行→別アカ参加／ロール変更／現場の担当割当 を確認**（2026-06-25）。
+  - 設計：feature-first。新規 `lib/features/org/`（data: Org/Member/Invite Repository、application: Join/Member/Invite Controller、presentation: signup/join/members）。`lib/features/sites/` に site_member（割当）。`currentProfileProvider`/`currentRoleProvider`/`isManagerRole` を追加。会社未所属はホーム内分岐（[JoinCompanyView]）。
+  - **DB**: `0005_org_roles.sql` を dev に適用済み。`current_role()`／**自己昇格を塞ぐ profiles更新ポリシー**／company_invites＋RLS／redeem_invite・create_company・set_member_role RPC／site_members＋RLS。**service_role 不使用・新規依存なし**。
+  - **非対象**：メンバー除名／owner 付替え／確認メール高度化／「担当現場のみ閲覧」RLS厳格化（会社単位の閲覧は維持）／ロールによる現場・日報・写真の編集制限（全員可を維持）。
+- Phase 6（帳票・PDF出力）: 日報PDF・写真台帳PDFを `printing` でOS共有。`lib/features/export/`。日本語フォントは `PdfGoogleFonts.notoSansJPRegular` 実行時取得。CI緑（`b7603ff`）。完了（2026-06-24）。
+- **本番化前の残タスク（運用）**: prod の Supabase に 0001〜0004 ＋ **0005（組織・権限）** を順に適用。dev は適用済み。
+- **実装メモ**: feature-first。会社割当・ロール変更は security definer RPC（クライアントから直接 company_id/role を書き換え不可＝自己昇格不可）。招待コードは8桁（紛らわしい文字除外）・期限7日・失効可。担当割当の閲覧は会社単位のまま。AsyncValueの値取得は `.value`。
+- **次にやること**: **Phase 5（通知・連携）** または **Phase 8（品質強化）**。Phase 5 は APNs/FCM の証明書設定が必要なため、軽い「現場内お知らせ/コメント」から始める等スコープ調整を相談。着手時は 要件定義書→承認→実装仕様書→実装 の順。
 - **チャットが切れた時の再開方法**: 新しいClaudeチャットで「`docs/ROADMAP.md` を読んで、続きから1ステップずつ案内して」と言う。
 
 ### Phase 1.0 手作業チェックリスト（これを全部 ✅ にすれば 1.0 完了）
