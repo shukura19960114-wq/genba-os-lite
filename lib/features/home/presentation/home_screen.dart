@@ -6,21 +6,22 @@ import '../../../core/config/app_config_provider.dart';
 import '../../../core/router/app_routes.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/application/auth_providers.dart';
+import '../../auth/application/current_profile_provider.dart';
 import '../../auth/data/auth_repository.dart';
+import '../../org/presentation/join_company_view.dart';
 
-/// ログイン後のホーム画面（Phase 1.1 では最小構成）。
+/// ログイン後のホーム画面。
 ///
-/// ログイン中ユーザーのメール・ロール・会社名を表示し、ログアウトできる。
-/// 現場一覧などの本体機能は Phase 1.2 以降で追加する。
+/// 会社未所属なら「会社に参加/作成」（[JoinCompanyView]）を表示し、
+/// 所属済みならプロフィール・現場一覧導線・（管理者のみ）メンバー管理を表示する。
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(appConfigProvider);
-    final homeAsync = ref.watch(homeProfileProvider);
+    final profileAsync = ref.watch(currentProfileProvider);
     final authState = ref.watch(authControllerProvider);
-    final email = ref.watch(authRepositoryProvider).currentUser?.email;
 
     return Scaffold(
       appBar: AppBar(
@@ -31,76 +32,126 @@ class HomeScreen extends ConsumerWidget {
             onPressed: () => context.push(RoutePaths.connectionCheck),
             icon: const Icon(Icons.wifi_tethering),
           ),
+          IconButton(
+            key: const Key('home_logout_icon'),
+            tooltip: 'ログアウト',
+            onPressed: authState.isLoading
+                ? null
+                : () => ref.read(authControllerProvider.notifier).signOut(),
+            icon: const Icon(Icons.logout),
+          ),
         ],
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Icon(Icons.check_circle, color: Colors.green, size: 56),
-                const SizedBox(height: 12),
-                Text(
-                  'ログイン中',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 24),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: homeAsync.when(
-                      data: (home) => _ProfileInfo(
-                        email: email ?? home.profile?.email ?? '(不明)',
-                        role: home.profile?.role,
-                        companyName: home.companyName,
-                        companyId: home.profile?.companyId,
+      body: profileAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => _HomeBodyFallback(
+          email: ref.watch(authRepositoryProvider).currentUser?.email,
+          note: 'プロフィール情報を取得できませんでした（テーブル未作成の可能性）。',
+        ),
+        data: (profile) {
+          // 会社未所属 → 参加/作成画面。
+          if (profile == null || profile.companyId == null) {
+            return const JoinCompanyView();
+          }
+          return const _HomeBody();
+        },
+      ),
+    );
+  }
+}
+
+/// 会社所属済みのホーム本体（プロフィール + 現場一覧導線）。
+class _HomeBody extends ConsumerWidget {
+  const _HomeBody();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final homeAsync = ref.watch(homeProfileProvider);
+    final email = ref.watch(authRepositoryProvider).currentUser?.email;
+    final role = ref.watch(currentRoleProvider);
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Icon(Icons.check_circle, color: Colors.green, size: 56),
+              const SizedBox(height: 12),
+              Text(
+                'ログイン中',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 24),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: homeAsync.when(
+                    data: (home) => _ProfileInfo(
+                      email: email ?? home.profile?.email ?? '(不明)',
+                      role: home.profile?.role,
+                      companyName: home.companyName,
+                      companyId: home.profile?.companyId,
+                    ),
+                    loading: () => const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(8),
+                        child: CircularProgressIndicator(),
                       ),
-                      loading: () => const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(8),
-                          child: CircularProgressIndicator(),
-                        ),
-                      ),
-                      // プロフィール取得に失敗してもログイン自体は成功しているので、
-                      // メールだけは表示する。
-                      error: (e, _) => _ProfileInfo(
-                        email: email ?? '(不明)',
-                        role: null,
-                        companyName: null,
-                        companyId: null,
-                        note: 'プロフィール情報を取得できませんでした（テーブル未作成の可能性）。',
-                      ),
+                    ),
+                    error: (e, _) => _ProfileInfo(
+                      email: email ?? '(不明)',
+                      role: role,
+                      companyName: null,
+                      companyId: null,
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
-                FilledButton.icon(
-                  key: const Key('home_sites_button'),
-                  onPressed: () => context.push(RoutePaths.sites),
-                  icon: const Icon(Icons.location_city_outlined),
-                  label: const Text('現場一覧へ'),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  key: const Key('home_logout_button'),
-                  onPressed: authState.isLoading
-                      ? null
-                      : () => ref.read(authControllerProvider.notifier).signOut(),
-                  icon: authState.isLoading
-                      ? const SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.logout),
-                  label: const Text('ログアウト'),
-                ),
-              ],
+              ),
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                key: const Key('home_sites_button'),
+                onPressed: () => context.push(RoutePaths.sites),
+                icon: const Icon(Icons.location_city_outlined),
+                label: const Text('現場一覧へ'),
+              ),
+              // メンバー管理の導線は Phase 7b で owner/admin にのみ表示する。
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// プロフィール取得失敗時の最小表示（メールのみ）。
+class _HomeBodyFallback extends StatelessWidget {
+  const _HomeBodyFallback({required this.email, required this.note});
+
+  final String? email;
+  final String note;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: _ProfileInfo(
+                email: email ?? '(不明)',
+                role: null,
+                companyName: null,
+                companyId: null,
+                note: note,
+              ),
             ),
           ),
         ),
@@ -131,7 +182,7 @@ class _ProfileInfo extends StatelessWidget {
       children: [
         _row(context, Icons.mail_outline, 'メール', email),
         const Divider(height: 20),
-        _row(context, Icons.badge_outlined, 'ロール', role ?? '—'),
+        _row(context, Icons.badge_outlined, 'ロール', _roleLabel(role)),
         const Divider(height: 20),
         _row(
           context,
@@ -152,6 +203,13 @@ class _ProfileInfo extends StatelessWidget {
       ],
     );
   }
+
+  static String _roleLabel(String? role) => switch (role) {
+        'owner' => 'オーナー',
+        'admin' => '管理者',
+        'member' => 'メンバー',
+        _ => '—',
+      };
 
   Widget _row(BuildContext context, IconData icon, String label, String value) {
     return Row(

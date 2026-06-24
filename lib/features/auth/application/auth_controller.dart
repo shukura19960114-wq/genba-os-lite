@@ -27,6 +27,21 @@ class AuthController extends AsyncNotifier<void> {
     });
   }
 
+  /// Email + Password で新規登録。成功で true（state はエラーなし）。
+  /// 成功後の遷移は go_router の認証ガードに任せる（会社未所属ならホームで参加画面）。
+  Future<bool> signUp({
+    required String email,
+    required String password,
+  }) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await ref
+          .read(authRepositoryProvider)
+          .signUp(email: email, password: password);
+    });
+    return !state.hasError;
+  }
+
   /// サインアウト。
   Future<void> signOut() async {
     state = const AsyncValue.loading();

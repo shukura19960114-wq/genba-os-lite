@@ -52,5 +52,39 @@ void main() {
 
       expect(fake.signOutCalled, isTrue);
     });
+
+    // Phase 7: サインアップ
+    test('signUp 成功 → true・リポジトリの signUp を呼ぶ・state エラーなし', () async {
+      final fake = FakeAuthRepository();
+      final container = ProviderContainer(
+        overrides: [authRepositoryProvider.overrideWithValue(fake)],
+      );
+      addTearDown(container.dispose);
+
+      final ok = await container
+          .read(authControllerProvider.notifier)
+          .signUp(email: 'new@b.com', password: 'pass12');
+
+      expect(ok, isTrue);
+      expect(fake.signUpCalled, isTrue);
+      expect(container.read(authControllerProvider).hasError, isFalse);
+    });
+
+    test('signUp 失敗 → false・state はエラー', () async {
+      final fake = FakeAuthRepository(
+        failWith: const AuthException('User already registered'),
+      );
+      final container = ProviderContainer(
+        overrides: [authRepositoryProvider.overrideWithValue(fake)],
+      );
+      addTearDown(container.dispose);
+
+      final ok = await container
+          .read(authControllerProvider.notifier)
+          .signUp(email: 'dup@b.com', password: 'pass12');
+
+      expect(ok, isFalse);
+      expect(container.read(authControllerProvider).hasError, isTrue);
+    });
   });
 }

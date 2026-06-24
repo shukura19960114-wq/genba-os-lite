@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/auth_repository.dart';
 import '../data/profile.dart';
 import '../data/profile_repository.dart';
+import 'current_profile_provider.dart';
 
 /// 認証状態の変化を流す Stream（ログイン/ログアウト/トークン更新）。
 /// go_router の `refreshListenable` のトリガー元として使う。
@@ -20,13 +21,13 @@ final isLoggedInProvider = Provider<bool>(
 typedef HomeProfile = ({Profile? profile, String? companyName});
 
 /// ログイン中ユーザーのプロフィールと会社名をまとめて取得する。
+/// プロフィールは [currentProfileProvider] を流用（二重フェッチ回避）。会社名のみ追加取得。
 final homeProfileProvider = FutureProvider<HomeProfile>((ref) async {
-  final repo = ref.watch(profileRepositoryProvider);
-  final profile = await repo.fetchCurrentProfile();
+  final profile = await ref.watch(currentProfileProvider.future);
   String? companyName;
   final companyId = profile?.companyId;
   if (companyId != null) {
-    companyName = await repo.fetchCompanyName(companyId);
+    companyName = await ref.watch(profileRepositoryProvider).fetchCompanyName(companyId);
   }
   return (profile: profile, companyName: companyName);
 });

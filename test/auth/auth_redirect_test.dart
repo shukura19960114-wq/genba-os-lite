@@ -31,5 +31,20 @@ void main() {
         isNull,
       );
     });
+
+    // Phase 7: サインアップページの扱い
+    test('未ログインで signup → リダイレクトなし（登録できる）', () {
+      expect(
+        authRedirect(loggedIn: false, location: RoutePaths.signup),
+        isNull,
+      );
+    });
+
+    test('ログイン済みで signup → /（home）へ', () {
+      expect(
+        authRedirect(loggedIn: true, location: RoutePaths.signup),
+        RoutePaths.home,
+      );
+    });
   });
 }

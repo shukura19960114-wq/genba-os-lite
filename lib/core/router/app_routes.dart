@@ -4,6 +4,7 @@
 abstract final class RoutePaths {
   static const home = '/';
   static const login = '/login';
+  static const signup = '/signup';
   static const connectionCheck = '/connection';
   static const sites = '/sites';
   static const siteNew = '/sites/new';
@@ -25,6 +26,7 @@ abstract final class RoutePaths {
 abstract final class RouteNames {
   static const home = 'home';
   static const login = 'login';
+  static const signup = 'signup';
   static const connectionCheck = 'connectionCheck';
   static const sites = 'sites';
   static const siteNew = 'siteNew';

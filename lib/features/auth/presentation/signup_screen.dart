@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/config/app_config_provider.dart';
-import '../../../core/router/app_routes.dart';
 import '../application/auth_controller.dart';
 import '../data/auth_repository.dart';
 
-/// ログイン画面（Email + Password）。
+/// サインアップ画面（Email + Password の新規登録）。
 ///
-/// 入力検証 → ログインボタン（ローディング表示）→ 失敗時はエラー表示。
-/// 成功時の画面遷移は go_router の認証ガードが自動で行う（ここでは遷移しない）。
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+/// 登録に成功するとセッションが張られ、go_router の認証ガードでホームへ遷移する。
+/// 会社未所属のためホームでは「会社に参加/作成」画面が表示される。
+class SignupScreen extends ConsumerStatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -34,10 +32,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
-    await ref.read(authControllerProvider.notifier).signIn(
+    final messenger = ScaffoldMessenger.of(context);
+    final ok = await ref.read(authControllerProvider.notifier).signUp(
           email: _emailController.text,
           password: _passwordController.text,
         );
+    if (ok && mounted) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('登録しました。会社に参加または作成してください。')),
+      );
+    }
+    // 成功時の遷移は認証ガードに任せる（ここでは push しない）。
   }
 
   @override
@@ -61,13 +66,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'ログイン',
+                      '新規登録',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     const SizedBox(height: 24),
                     TextFormField(
-                      key: const Key('login_email_field'),
+                      key: const Key('signup_email_field'),
                       controller: _emailController,
                       enabled: !isLoading,
                       keyboardType: TextInputType.emailAddress,
@@ -88,13 +93,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
-                      key: const Key('login_password_field'),
+                      key: const Key('signup_password_field'),
                       controller: _passwordController,
                       enabled: !isLoading,
                       obscureText: _obscure,
-                      autofillHints: const [AutofillHints.password],
+                      autofillHints: const [AutofillHints.newPassword],
                       decoration: InputDecoration(
-                        labelText: 'パスワード',
+                        labelText: 'パスワード（6文字以上）',
                         prefixIcon: const Icon(Icons.lock_outline),
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
@@ -111,6 +116,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         if (value == null || value.isEmpty) {
                           return 'パスワードを入力してください';
                         }
+                        if (value.length < 6) {
+                          return 'パスワードは6文字以上で入力してください';
+                        }
                         return null;
                       },
                     ),
@@ -120,7 +128,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ],
                     const SizedBox(height: 24),
                     FilledButton(
-                      key: const Key('login_submit_button'),
+                      key: const Key('signup_submit_button'),
                       onPressed: isLoading ? null : _submit,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
@@ -130,15 +138,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 width: 20,
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
-                            : const Text('ログイン'),
+                            : const Text('登録する'),
                       ),
                     ),
                     const SizedBox(height: 8),
                     TextButton(
-                      key: const Key('login_to_signup_button'),
-                      onPressed:
-                          isLoading ? null : () => context.push(RoutePaths.signup),
-                      child: const Text('新規登録はこちら'),
+                      key: const Key('signup_to_login_button'),
+                      onPressed: isLoading ? null : () => Navigator.of(context).maybePop(),
+                      child: const Text('すでにアカウントをお持ちの方はログイン'),
                     ),
                   ],
                 ),

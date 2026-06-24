@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/presentation/login_screen.dart';
+import '../../features/auth/presentation/signup_screen.dart';
 import '../../features/foundation/presentation/connection_check_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/photos/presentation/photo_gallery_screen.dart';
@@ -22,13 +23,17 @@ import 'app_routes.dart';
 
 /// 認証状態に応じたリダイレクト先を返す純粋関数（テスト容易化のため分離）。
 ///
-/// - 未ログインで login 以外 → /login
-/// - ログイン済みで /login → /（home）
+/// - 未ログインで 認証ページ（login/signup）以外 → /login
+/// - ログイン済みで 認証ページ → /（home）
 /// - それ以外はリダイレクトなし（null）
+///
+/// 会社未所属（company_id == null）の分岐は、判定が非同期なため
+/// リダイレクトでは行わず [HomeScreen] 内で会社参加/作成画面を表示する。
 String? authRedirect({required bool loggedIn, required String location}) {
-  final loggingIn = location == RoutePaths.login;
-  if (!loggedIn) return loggingIn ? null : RoutePaths.login;
-  if (loggingIn) return RoutePaths.home;
+  final onAuthPage =
+      location == RoutePaths.login || location == RoutePaths.signup;
+  if (!loggedIn) return onAuthPage ? null : RoutePaths.login;
+  if (onAuthPage) return RoutePaths.home;
   return null;
 }
 
@@ -58,6 +63,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: RoutePaths.login,
         name: RouteNames.login,
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.signup,
+        name: RouteNames.signup,
+        builder: (context, state) => const SignupScreen(),
       ),
       GoRoute(
         path: RoutePaths.connectionCheck,

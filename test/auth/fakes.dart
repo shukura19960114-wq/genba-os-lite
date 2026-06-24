@@ -14,6 +14,7 @@ class FakeAuthRepository implements AuthRepository {
   Session? _session;
 
   bool signInCalled = false;
+  bool signUpCalled = false;
   bool signOutCalled = false;
 
   final _controller = StreamController<AuthState>.broadcast();
@@ -24,6 +25,15 @@ class FakeAuthRepository implements AuthRepository {
     required String password,
   }) async {
     signInCalled = true;
+    if (failWith != null) throw failWith!;
+  }
+
+  @override
+  Future<void> signUp({
+    required String email,
+    required String password,
+  }) async {
+    signUpCalled = true;
     if (failWith != null) throw failWith!;
   }
 

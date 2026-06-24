@@ -16,6 +16,13 @@ abstract interface class AuthRepository {
     required String password,
   });
 
+  /// Email + Password で新規登録する。失敗時は [AuthException] を投げる。
+  /// Supabase の Email confirmation が OFF なら即セッションが張られる。
+  Future<void> signUp({
+    required String email,
+    required String password,
+  });
+
   /// サインアウトする。
   Future<void> signOut();
 
@@ -41,6 +48,17 @@ class SupabaseAuthRepository implements AuthRepository {
     required String password,
   }) async {
     await _client.auth.signInWithPassword(
+      email: email.trim(),
+      password: password,
+    );
+  }
+
+  @override
+  Future<void> signUp({
+    required String email,
+    required String password,
+  }) async {
+    await _client.auth.signUp(
       email: email.trim(),
       password: password,
     );
@@ -73,6 +91,12 @@ String authErrorMessage(Object error) {
     }
     if (m.contains('email not confirmed')) {
       return 'メールアドレスが未確認です。管理者に確認してください。';
+    }
+    if (m.contains('already registered') || m.contains('already been registered')) {
+      return 'このメールアドレスは既に登録されています。ログインしてください。';
+    }
+    if (m.contains('password') && m.contains('6')) {
+      return 'パスワードは6文字以上で入力してください。';
     }
     return error.message;
   }
