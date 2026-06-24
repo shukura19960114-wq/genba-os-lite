@@ -69,6 +69,7 @@ class _HomeBody extends ConsumerWidget {
     final homeAsync = ref.watch(homeProfileProvider);
     final email = ref.watch(authRepositoryProvider).currentUser?.email;
     final role = ref.watch(currentRoleProvider);
+    final isManager = isManagerRole(role);
 
     return Center(
       child: ConstrainedBox(
@@ -119,7 +120,15 @@ class _HomeBody extends ConsumerWidget {
                 icon: const Icon(Icons.location_city_outlined),
                 label: const Text('現場一覧へ'),
               ),
-              // メンバー管理の導線は Phase 7b で owner/admin にのみ表示する。
+              if (isManager) ...[
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  key: const Key('home_members_button'),
+                  onPressed: () => context.push(RoutePaths.members),
+                  icon: const Icon(Icons.group_outlined),
+                  label: const Text('メンバー管理'),
+                ),
+              ],
             ],
           ),
         ),

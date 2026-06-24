@@ -8,6 +8,7 @@ import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/signup_screen.dart';
 import '../../features/foundation/presentation/connection_check_screen.dart';
+import '../../features/org/presentation/members_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/photos/presentation/photo_gallery_screen.dart';
 import '../../features/photos/presentation/photo_viewer_screen.dart';
@@ -68,6 +69,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: RoutePaths.signup,
         name: RouteNames.signup,
         builder: (context, state) => const SignupScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.members,
+        name: RouteNames.members,
+        builder: (context, state) => const MembersScreen(),
       ),
       GoRoute(
         path: RoutePaths.connectionCheck,
