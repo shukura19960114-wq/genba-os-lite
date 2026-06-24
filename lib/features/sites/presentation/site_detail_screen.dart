@@ -3,13 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../shared/widgets/async_value_widget.dart';
+import '../../auth/application/current_profile_provider.dart';
+import '../../org/application/members_providers.dart';
 import '../../photos/application/photo_upload_controller.dart';
 import '../../photos/application/photos_providers.dart';
 import '../../photos/data/photo.dart';
 import '../../photos/presentation/photo_add.dart';
 import '../../photos/presentation/photo_thumbnail.dart';
+import '../application/site_member_controller.dart';
 import '../application/sites_providers.dart';
 import '../data/site.dart';
+import '../data/site_member_repository.dart';
 
 /// 現場詳細画面。現場名・住所・ステータス・登録日と、現場写真の一覧/追加を表示する。
 class SiteDetailScreen extends ConsumerWidget {
@@ -70,6 +74,9 @@ class SiteDetailScreen extends ConsumerWidget {
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push('/sites/${site.id}/reports'),
               ),
+              const SizedBox(height: 16),
+              // Phase 7c: 担当メンバー
+              _SiteMembersSection(siteId: siteId),
               const SizedBox(height: 16),
               _PhotosSection(siteId: siteId, companyId: site.companyId),
             ],
@@ -213,6 +220,178 @@ class _PhotosSection extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+String _roleLabel(String? role) => switch (role) {
+      'owner' => 'オーナー',
+      'admin' => '管理者',
+      'member' => 'メンバー',
+      _ => '—',
+    };
+
+/// 担当メンバーセクション（割当一覧・追加/解除）。割当/解除は owner/admin のみ。
+class _SiteMembersSection extends ConsumerWidget {
+  const _SiteMembersSection({required this.siteId});
+
+  final String siteId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final assignedAsync = ref.watch(siteMembersProvider(siteId));
+    final isManager = isManagerRole(ref.watch(currentRoleProvider));
+    final isBusy = ref.watch(siteMemberControllerProvider).isLoading;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Text('担当メンバー',
+                style: Theme.of(context).textTheme.titleMedium),
+            const Spacer(),
+            if (isBusy)
+              const Padding(
+                padding: EdgeInsets.only(right: 8),
+                child: SizedBox(
+                  height: 18,
+                  width: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            if (isManager)
+              IconButton(
+                key: const Key('site_member_add_button'),
+                tooltip: 'メンバーを割り当て',
+                onPressed: isBusy
+                    ? null
+                    : () => _showAssignSheet(context, ref,
+                        assignedAsync.value ?? const []),
+                icon: const Icon(Icons.person_add_alt_1_outlined),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        AsyncValueWidget<List<AssignedMember>>(
+          value: assignedAsync,
+          data: (members) {
+            if (members.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Text('担当メンバーがいません',
+                    style: TextStyle(color: Colors.grey)),
+              );
+            }
+            return Column(
+              children: [
+                for (final m in members)
+                  Card(
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    child: ListTile(
+                      leading: const CircleAvatar(
+                          child: Icon(Icons.person, size: 20)),
+                      title: Text(m.email ?? '(メール未設定)'),
+                      subtitle: Text(_roleLabel(m.role)),
+                      trailing: isManager
+                          ? IconButton(
+                              key: Key('site_member_remove_${m.profileId}'),
+                              tooltip: '解除',
+                              icon: const Icon(Icons.close, size: 20),
+                              onPressed: isBusy
+                                  ? null
+                                  : () => ref
+                                      .read(siteMemberControllerProvider
+                                          .notifier)
+                                      .unassign(
+                                          siteId: siteId,
+                                          profileId: m.profileId),
+                            )
+                          : null,
+                    ),
+                  ),
+              ],
+            );
+          },
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (e, _) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text('担当メンバーの取得に失敗しました：$e',
+                style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _showAssignSheet(
+    BuildContext context,
+    WidgetRef ref,
+    List<AssignedMember> assigned,
+  ) async {
+    final assignedIds = assigned.map((e) => e.profileId).toSet();
+    final messenger = ScaffoldMessenger.of(context);
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Consumer(
+            builder: (context, ref, _) {
+              final membersAsync = ref.watch(membersProvider);
+              return membersAsync.when(
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (e, _) => Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text('メンバーの取得に失敗しました：$e'),
+                ),
+                data: (all) {
+                  final candidates = all
+                      .where((p) => !assignedIds.contains(p.id))
+                      .toList();
+                  if (candidates.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Text('割り当てできるメンバーがいません'),
+                    );
+                  }
+                  return ListView(
+                    shrinkWrap: true,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('割り当てるメンバーを選択',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                      for (final p in candidates)
+                        ListTile(
+                          leading: const Icon(Icons.person_outline),
+                          title: Text(p.email ?? '(メール未設定)'),
+                          subtitle: Text(_roleLabel(p.role)),
+                          onTap: () async {
+                            Navigator.pop(context);
+                            final ok = await ref
+                                .read(siteMemberControllerProvider.notifier)
+                                .assign(siteId: siteId, profileId: p.id);
+                            messenger.showSnackBar(SnackBar(
+                              content:
+                                  Text(ok ? '割り当てました' : '割り当てに失敗しました'),
+                            ));
+                          },
+                        ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
