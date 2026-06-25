@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_routes.dart';
 import '../../../shared/widgets/async_value_widget.dart';
+import '../../messages/application/posts_providers.dart';
 import '../application/sites_providers.dart';
 import '../data/site.dart';
 
@@ -14,6 +15,8 @@ class SiteListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sitesAsync = ref.watch(sitesListProvider);
+    // 未読件数 {site_id: 件数}。0006 未適用や取得前は空（バッジなし）で安全に劣化。
+    final unread = ref.watch(unreadCountsProvider).value ?? const <String, int>{};
 
     return Scaffold(
       appBar: AppBar(title: const Text('現場一覧')),
@@ -26,6 +29,7 @@ class SiteListScreen extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(sitesListProvider);
+          ref.invalidate(unreadCountsProvider);
           await ref.read(sitesListProvider.future);
         },
         child: AsyncValueWidget<List<Site>>(
@@ -36,7 +40,10 @@ class SiteListScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(12),
               itemCount: sites.length,
               separatorBuilder: (_, _) => const SizedBox(height: 8),
-              itemBuilder: (context, index) => _SiteCard(site: sites[index]),
+              itemBuilder: (context, index) => _SiteCard(
+                site: sites[index],
+                unread: unread[sites[index].id] ?? 0,
+              ),
             );
           },
           error: (e, _) => _ErrorState(
@@ -50,24 +57,59 @@ class SiteListScreen extends ConsumerWidget {
 }
 
 class _SiteCard extends StatelessWidget {
-  const _SiteCard({required this.site});
+  const _SiteCard({required this.site, this.unread = 0});
 
   final Site site;
+  final int unread;
 
   @override
   Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: ListTile(
-        title: Text(
-          site.name,
-          style: const TextStyle(fontWeight: FontWeight.w600),
+        title: Row(
+          children: [
+            Flexible(
+              child: Text(
+                site.name,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (unread > 0) ...[
+              const SizedBox(width: 8),
+              _UnreadBadge(count: unread),
+            ],
+          ],
         ),
         subtitle: Text(
           site.address?.isNotEmpty == true ? site.address! : '住所未登録',
         ),
         trailing: _StatusChip(status: site.status),
         onTap: () => context.push('${RoutePaths.sites}/${site.id}'),
+      ),
+    );
+  }
+}
+
+/// 未読の連絡件数バッジ（赤）。
+class _UnreadBadge extends StatelessWidget {
+  const _UnreadBadge({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.red,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        count > 99 ? '99+' : '$count',
+        style: const TextStyle(
+            color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
       ),
     );
   }

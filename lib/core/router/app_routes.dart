@@ -16,6 +16,9 @@ abstract final class RoutePaths {
   static const sitePhotos = '/sites/:id/photos';
   static const sitePhotoView = '/sites/:id/photos/:index';
 
+  // Phase 5 現場連絡（現場配下）。実遷移は '/sites/<id>/messages'
+  static const siteMessages = '/sites/:id/messages';
+
   // Phase 2 日報（現場配下）。実遷移は '/sites/<siteId>/reports[/...]'
   static const siteReports = '/sites/:siteId/reports';
   static const siteReportNew = '/sites/:siteId/reports/new';
@@ -37,6 +40,8 @@ abstract final class RouteNames {
 
   static const sitePhotos = 'sitePhotos';
   static const sitePhotoView = 'sitePhotoView';
+
+  static const siteMessages = 'siteMessages';
 
   static const siteReports = 'siteReports';
   static const siteReportNew = 'siteReportNew';

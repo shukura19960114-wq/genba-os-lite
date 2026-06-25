@@ -74,6 +74,15 @@ class SiteDetailScreen extends ConsumerWidget {
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push('/sites/${site.id}/reports'),
               ),
+              // Phase 5: 現場連絡への導線
+              ListTile(
+                key: const Key('site_messages_tile'),
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.forum_outlined),
+                title: const Text('連絡'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/sites/${site.id}/messages'),
+              ),
               const SizedBox(height: 16),
               // Phase 7c: 担当メンバー
               _SiteMembersSection(siteId: siteId),

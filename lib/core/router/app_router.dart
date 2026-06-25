@@ -8,8 +8,9 @@ import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/signup_screen.dart';
 import '../../features/foundation/presentation/connection_check_screen.dart';
-import '../../features/org/presentation/members_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/messages/presentation/messages_screen.dart';
+import '../../features/org/presentation/members_screen.dart';
 import '../../features/photos/presentation/photo_gallery_screen.dart';
 import '../../features/photos/presentation/photo_viewer_screen.dart';
 import '../../features/reports/presentation/report_detail_screen.dart';
@@ -117,6 +118,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           siteId: state.pathParameters['id']!,
           initialIndex: int.tryParse(state.pathParameters['index'] ?? '0') ?? 0,
         ),
+      ),
+      // Phase 5 現場連絡（現場配下）
+      GoRoute(
+        path: RoutePaths.siteMessages,
+        name: RouteNames.siteMessages,
+        builder: (context, state) =>
+            MessagesScreen(siteId: state.pathParameters['id']!),
       ),
       // 日報（現場配下）。'/reports/new' を '/reports/:reportId' より先に登録する。
       GoRoute(
